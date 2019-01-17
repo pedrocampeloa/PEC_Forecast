@@ -451,60 +451,66 @@ Created on Fri Oct 12 19:33:42 2018
 
 
 
+                    #Lasso - OK
 
-                                            #Lasso
-    
     #1)Lasso normal
-    
+
+    from sklearn.linear_model import Lasso
     from sklearn import linear_model
+    import time
     
-    def lasso_classificator(X_treino, X_teste, y_treino, y_teste):    
+    #Olhar Default 
+    print(Lasso().get_params())
+    
+    def lasso_classificator(X_treino, X_teste, y_treino, y_teste): 
         alpha_lasso_lista = [1e-15, 1e-10, 1e-8, 1e-5,1e-4, 1e-3,1e-2,1e-1, 1, 5, 10,20]
         EQM_lista=[]
         for alpha in alpha_lasso_lista:
             model = linear_model.Lasso(alpha=alpha, copy_X=True, fit_intercept=True, max_iter=1000,
-            normalize=True, positive=False, precompute=False, random_state=None,
-            selection='cyclic', tol=0.0001, warm_start=False)
+                                       normalize=True, positive=False, precompute=False, random_state=None,
+                                       selection='cyclic', tol=0.0001, warm_start=False)
             model_fit=model.fit(X_treino,y_treino)
-           
+        
             y_predictions = model_fit.predict(X_teste)
             EQM_lista.append(np.sqrt(mean_squared_error(y_teste, y_predictions)))
-#            print(EQM_lista)
-            
+            # print(EQM_lista)
+        
         EQM=pd.DataFrame(columns=['alpha', 'resíduo'], index=list(range(len(alpha_lasso_lista))))
         EQM['alpha']=alpha_lasso_lista
         EQM['resíduo']=EQM_lista
+        EQM1=EQM.sort_values(by='resíduo', ascending=True)[0:1]['resíduo'].item()
+        
         print(EQM.sort_values(by='resíduo', ascending=True)[0:5])
         alpha=EQM.sort_values(by='resíduo', ascending=True)[0:1]['alpha'].item()
-        print('O alpha que apresente o menor erro de previsão é igual a %.1f' % alpha)        
+        
+        
+        print('O alpha que apresente o menor erro de previsão é igual a %.1f' % alpha) 
+        
         return alpha
     
-   
-    alpha=lasso_classificator(X_treino, X_teste, y_treino, y_teste)   
-        
-    model3 = linear_model.Lasso(alpha=alpha, copy_X=True, fit_intercept=True, max_iter=1000,
-        normalize=True, positive=False, precompute=False, random_state=None,
-        selection='cyclic', tol=0.0001, warm_start=False)
-    model_fit3=model3.fit(X_treino,y_treino)
-
-    coef3=model3.coef_
-    R23 = model_fit3.score(X_treino,y_treino)
+    alpha = lasso_classificator(X_treino, X_teste, y_treino, y_teste)
     
-        # make predictions
+    model3 = linear_model.Lasso(alpha=alpha, copy_X=True, fit_intercept=True, max_iter=1000,
+                                normalize=True, positive=False, precompute=False, random_state=None,
+                                selection='cyclic', tol=0.0001, warm_start=False)
+    model_fit3=model3.fit(X_treino,y_treino)
+    
+    coef3=model3.coef_
+    R23 = model_fit3.score(X_treino,y_treino) 
+    # make predictions
     y_predictions3 = model_fit3.predict(X_teste)
-    y_predictions3= pd.DataFrame(y_predictions3, index=teste)   #previsão
-
-
+    y_predictions3= pd.DataFrame(y_predictions3, index=teste) #previsão 
     EQM3 = mean_squared_error(y_teste, y_predictions3)
     resid3 = np.sqrt(EQM3)
     print('Test MSE, residuo: %.3f' % EQM3,resid3)
     
     accuracy_3 = r2_score(y_teste, y_predictions3)
-    R2_3_teste = model_fit3.score(X_teste, y_teste)  
+    R2_3_teste = model_fit3.score(X_teste, y_teste) 
     print ('accuracy, R2_teste: %.3f' % accuracy_3, R2_3_teste)
     
-    if forecastHorizon>1:       
-        plt.figure()    
+    
+    if forecastHorizon>1: 
+        plt.figure() 
         pyplot.plot(y_treino, label='Treino')
         pyplot.plot(y_teste, color='black', label='Teste')
         pyplot.plot(y_predictions3, color='red', label='Previsão')
@@ -514,66 +520,137 @@ Created on Fri Oct 12 19:33:42 2018
         plt.xticks(rotation=30)
         plt.title('Previsão Consumo de Energia Elétrica (LASSO)')
         #plt.grid()
-        plt.savefig('modelBR3_'+str(forecastHorizon)+'lag.png')   
+        # plt.savefig('modelBR3_'+str(forecastHorizon)+'lag.png') 
         pyplot.show() 
-
     
-
-#    
-#    #2) Lasso CV
-#    
-#    from sklearn.linear_model import LassoCV
-# 
-#    model4 = LassoCV(cv=365, random_state=0).fit(X_treino, y_treino)
-#    print(model4.coef_)
-#    coef4=model4.coef_ 
-#    R24 = model4.score(X_treino, y_treino) 
-#
-#        # make predictions
-#    y_predictions4 = model4.predict(X_teste)
-#    y_predictions4= pd.DataFrame(y_predictions4, index=teste)   #previsão
-#
-#    EQM4 = mean_squared_error(y_teste, y_predictions4)
-#    resid4 = np.sqrt(EQM4)
-#    print('Test MSE: %.3f' % EQM4,resid4)
-#    
-#    accuracy_4 = r2_score(y_teste, y_predictions4)
-#    R2_4_teste = model4.score(X_teste, y_teste)  
-#    print ('accuracy, R2_teste: %.3f' % accuracy_4, R2_4_teste)
-#           
-#    if forecastHorizon>1: 
-#        plt.figure()    
-#        pyplot.plot(y_treino, label='Treino')
-#        pyplot.plot(y_teste, color='black', label='Teste')
-#        pyplot.plot(y_predictions4, color='red', label='Previsão')
-#        #dados['CEE_BR_TOT'].plot(color='black', label='Brasil')
-#        plt.legend(loc='best')
-#        plt.ylabel('KW/h')
-#        plt.xticks(rotation=30)
-#        plt.title('Previsão Consumo de Energia Elétrica (LassoCV)')
-#        plt.grid()
-#        plt.savefig('modelBR4.png')   
-#        pyplot.show() 
-
     
-    #XGboostin
-#    import xbgoost
-#    
-#    from xgboost.sklearn import XGBClassifier  
-#    from xgboost.sklearn import XGBRegressor
-#    
-#    xclas = XGBClassifier()  # and for classifier  
-#    xclas.fit(X_train, y_train)  
-#    xclas.predict(X_test) 
-#        
-                                        #Lars
+    
+    
+    #2) Lasso CV
+    #está demorando muito
+    #Talvez tirar o 100 da lista (ou 50)
+    
+    from sklearn.linear_model import LassoCV 
+    #Olhar Default 
+    print(LassoCV().get_params()) 
+    
+    #conferir qual roda melhor (500 ou 1000)
+    def lassoCV_classificator(X_treino, X_teste, y_treino, y_teste):
+    
+        eps_LassoCV_list = [1e-8,1, 20]
+        
+        EQM3_lista=[]
+        EQM10_lista=[]
+        EQM50_lista=[]
+        EQM100_lista=[]
+        
+        for eps in eps_LassoCV_list:
+            start_time = time.time()
+            model= LassoCV(fit_intercept=True, verbose=False, max_iter=500, 
+                           normalize=True, cv=3, eps=0.001, copy_X=True, 
+                           positive=False) 
+            model_fit=model.fit(X_treino, y_treino)
+            
+            y_predictions = model_fit.predict(X_teste)
+            EQM3_lista.append(np.sqrt(mean_squared_error(y_teste, y_predictions)))
+            print(EQM3_lista)
+            print ("My program took", time.time() - start_time, "seconds to run")
+        
+        for eps in eps_LassoCV_list:
+            start_time = time.time()
+            model= LassoCV(fit_intercept=True, verbose=False, max_iter=500, 
+                           normalize=True, cv=10, eps=eps, copy_X=True, 
+                           positive=False) 
+            model_fit=model.fit(X_treino, y_treino)
+            
+            y_predictions = model_fit.predict(X_teste)
+            EQM10_lista.append(np.sqrt(mean_squared_error(y_teste, y_predictions)))
+            print(EQM10_lista)
+            print ("My program took", time.time() - start_time, "seconds to run")
+            
+        for eps in eps_LassoCV_list:
+            start_time = time.time()
+            model= LassoCV(fit_intercept=True, verbose=False, max_iter=500, 
+                           normalize=True, cv=50, eps=eps, copy_X=True, 
+                           positive=False) 
+            model_fit=model.fit(X_treino, y_treino)
+            
+            y_predictions = model_fit.predict(X_teste)
+            EQM50_lista.append(np.sqrt(mean_squared_error(y_teste, y_predictions)))
+            print(EQM50_lista)
+            print ("My program took", time.time() - start_time, "seconds to run") 
+        
+        
+        EQM1=pd.DataFrame(columns=['EQM3', 'EQM10','EQM50', 'EQM100'], index=eps_LassoCV_list)
+        EQM1['EQM3']=EQM3_lista
+        EQM1['EQM10']=EQM10_lista
+        EQM1['EQM50']=EQM50_lista 
+        
+        menorEQM1_list=[sorted(EQM3_lista)[0],sorted(EQM10_lista)[0],sorted(EQM50_lista)[0]] 
+        menorEQM=sorted(menorEQM1_list)[0]
+        
+        position1=menorEQM1_list.index(menorEQM1)
+        menorEQM_col=EQM1.columns[position1]
+        
+        cv=int(EQM1.columns[position1][3:])
+        eps=EQM1.loc[EQM1[menorEQM_col].isin([menorEQM1])].index.item()        
+        
+        print ("My program took", time.time() - start_time, "seconds to run") 
+        return cv1, eps, cv2, EQM1, EQM2
+    
+    cv, eps = lassoCV_classificator(X_treino, X_teste, y_treino, y_teste)
+    
+    
+    model4= LassoCV(fit_intercept=True, verbose=False, max_iter=500, 
+                    normalize=True, cv=cv, max_n_alphas=1000, eps=eps, 
+                    copy_X=True, positive=False) 
+    model4_fit = model4.fit(X_treino,y_treino)
+    
+    print(model4_fit.coef_) 
+    coef4=model4_fit.coef_ 
+    R24 = model4_fit.score(X_treino, y_treino) 
+    
+    y_predictions4 = model4_fit.predict(X_teste)
+    y_predictions4= pd.DataFrame(y_predictions4, index=teste) #previsão
+    
+    EQM4 = mean_squared_error(y_teste, y_predictions4)
+    resid4 = np.sqrt(EQM4)
+    print('Test MSE: %.3f' % EQM4,resid4)
+    
+    accuracy_4 = r2_score(y_teste, y_predictions4)
+    R2_4_teste = model4.score(X_teste, y_teste) 
+    print ('accuracy, R2_teste: %.3f' % accuracy_4, R2_4_teste)
+    
+    
+    if forecastHorizon>1: 
+        plt.figure() 
+        pyplot.plot(y_treino, label='Treino')
+        pyplot.plot(y_teste, color='black', label='Teste')
+        pyplot.plot(y_predictions4, color='red', label='Previsão')
+        #dados['CEE_BR_TOT'].plot(color='black', label='Brasil')
+        plt.legend(loc='best')
+        plt.ylabel('KW/h')
+        plt.xticks(rotation=30)
+        plt.title('Previsão Consumo de Energia Elétrica (LASSO LARS CV)')
+        plt.grid()
+        # plt.savefig('modelBR4_'+str(forecastHorizon)+'lag.png') 
+        pyplot.show()
+        #        
+        
+        
+        
+        
+                                        #Lars - OK
                                         
     #1) Lars 
-    
+
     from sklearn.linear_model import Lars
     
+    #Olhar Default 
+    print(Lars().get_params())
+    
     def lars_classificator(X_treino, X_teste, y_treino, y_teste):
-        eps_list = [1e-15, 1e-10, 1e-8, 1e-5,1e-4, 1e-3,1e-2, 1, 5, 10,20]
+        eps_list = [1e-15, 1e-10, 1e-8, 1e-5,1e-3,1e-2, 1,2,5, 10,20]
         EQM1_lista=[]
         EQM10_lista=[]
         EQM50_lista=[]
@@ -581,101 +658,99 @@ Created on Fri Oct 12 19:33:42 2018
         EQM500_lista=[]
         
         for eps in eps_list:
-                model=Lars(fit_intercept=True, verbose=False, normalize=True, 
-                                            n_nonzero_coefs=1, eps=eps, 
-                                            copy_X=True, fit_path=True, positive=False)      
-                model_fit=model.fit(X_treino, y_treino)
-                
-                y_predictions = model_fit.predict(X_teste)
-                EQM1_lista.append(np.sqrt(mean_squared_error(y_teste, y_predictions)))
-                
-        for eps in eps_list:
-                model=Lars(fit_intercept=True, verbose=False, normalize=True, 
-                                            n_nonzero_coefs=10, eps=eps, 
-                                            copy_X=True, fit_path=True, positive=False)      
-                model_fit=model.fit(X_treino, y_treino)
-                
-                y_predictions = model_fit.predict(X_teste)
-                EQM10_lista.append(np.sqrt(mean_squared_error(y_teste, y_predictions)))
-                
-        for eps in eps_list:
-                model=Lars(fit_intercept=True, verbose=False, normalize=True, 
-                                            n_nonzero_coefs=50, eps=eps, 
-                                            copy_X=True, fit_path=True, positive=False)      
-                model_fit=model.fit(X_treino, y_treino)
-                
-                y_predictions = model_fit.predict(X_teste)
-                EQM50_lista.append(np.sqrt(mean_squared_error(y_teste, y_predictions)))
-                
-                
-        for eps in eps_list:
-                model=Lars(fit_intercept=True, verbose=False, normalize=True, 
-                                            n_nonzero_coefs=100, eps=eps, 
-                                            copy_X=True, fit_path=True, positive=False)      
-                model_fit=model.fit(X_treino, y_treino)
-                
-                y_predictions = model_fit.predict(X_teste)
-                EQM100_lista.append(np.sqrt(mean_squared_error(y_teste, y_predictions)))
-                
-        for eps in eps_list:
-                model=Lars(fit_intercept=True, verbose=False, normalize=True, 
-                                            n_nonzero_coefs=500, eps=eps, 
-                                            copy_X=True, fit_path=True, positive=False)      
-                model_fit=model.fit(X_treino, y_treino)
-                
-                y_predictions = model_fit.predict(X_teste)
-                EQM500_lista.append(np.sqrt(mean_squared_error(y_teste, y_predictions)))
-
-                
-        EQM=pd.DataFrame(columns=['EQM1', 'EQM10','EQM50', 'EQM100','EQM500'], index=eps_list)
-        EQM['EQM1']=EQM1_lista
-        EQM['EQM10']=EQM10_lista
-        EQM['EQM50']=EQM50_lista
-        EQM['EQM100']=EQM100_lista
-        EQM['EQM500']=EQM500_lista
+            model=Lars(fit_intercept=True, verbose=False, normalize=True, 
+                       n_nonzero_coefs=1, eps=eps, 
+                       copy_X=True, fit_path=True, positive=False) 
+            model_fit=model.fit(X_treino, y_treino)
         
-        EQM1_sorted=sorted(EQM['EQM1'])        
-        EQM10_sorted=sorted(EQM['EQM10'])        
-        EQM50_sorted=sorted(EQM['EQM50'])        
-        EQM100_sorted=sorted(EQM['EQM100'])        
-        EQM500_sorted=sorted(EQM['EQM500'])
+            y_predictions = model_fit.predict(X_teste)
+            EQM1_lista.append(np.sqrt(mean_squared_error(y_teste, y_predictions)))
         
-        menorEQM_list=[EQM1_sorted[0],EQM10_sorted[0],EQM50_sorted[0],
-                  EQM100_sorted[0],EQM500_sorted[0]]        
-        menorEQM=sorted(menorEQM_list)[0]
+        for eps in eps_list:
+            model=Lars(fit_intercept=True, verbose=False, normalize=True, 
+                       n_nonzero_coefs=10, eps=eps, 
+                       copy_X=True, fit_path=True, positive=False) 
+            model_fit=model.fit(X_treino, y_treino)
+            
+            y_predictions = model_fit.predict(X_teste)
+            EQM10_lista.append(np.sqrt(mean_squared_error(y_teste, y_predictions)))
         
-        position=menorEQM_list.index(menorEQM)
-        menorEQM_col=EQM.columns[position]
-
-        nZeroCoef=float(EQM.columns[position][3:])
-        eps=EQM.loc[EQM[menorEQM_col].isin([menorEQM])].index.item()
+        for eps in eps_list:
+            model=Lars(fit_intercept=True, verbose=False, normalize=True, 
+                       n_nonzero_coefs=50, eps=eps, 
+                       copy_X=True, fit_path=True, positive=False) 
+            model_fit=model.fit(X_treino, y_treino)
+        
+            y_predictions = model_fit.predict(X_teste)
+            EQM50_lista.append(np.sqrt(mean_squared_error(y_teste, y_predictions)))
+        
+        
+        for eps in eps_list:
+            model=Lars(fit_intercept=True, verbose=False, normalize=True, 
+                       n_nonzero_coefs=100, eps=eps, 
+                       copy_X=True, fit_path=True, positive=False) 
+            model_fit=model.fit(X_treino, y_treino)
+            
+            y_predictions = model_fit.predict(X_teste)
+            EQM100_lista.append(np.sqrt(mean_squared_error(y_teste, y_predictions)))
+        
+        for eps in eps_list:
+            model=Lars(fit_intercept=True, verbose=False, normalize=True, 
+                       n_nonzero_coefs=500, eps=eps, 
+                       copy_X=True, fit_path=True, positive=False) 
+            model_fit=model.fit(X_treino, y_treino)
+        
+            y_predictions = model_fit.predict(X_teste)
+            EQM500_lista.append(np.sqrt(mean_squared_error(y_teste, y_predictions)))
+        
+        
+        EQM1=pd.DataFrame(columns=['EQM1', 'EQM10','EQM50', 'EQM100','EQM500'], index=eps_list)
+        EQM1['EQM1']=EQM1_lista
+        EQM1['EQM10']=EQM10_lista
+        EQM1['EQM50']=EQM50_lista
+        EQM1['EQM100']=EQM100_lista
+        EQM1['EQM500']=EQM500_lista
+        
+        menorEQM1_list=[sorted(EQM1_lista)[0],sorted(EQM10_lista)[0],
+        sorted(EQM50_lista)[0],sorted(EQM100_lista)[0],sorted(EQM500_lista)[0]] 
+        menorEQM1 = sorted(menorEQM1_list)[0]
+        
+        position1=menorEQM1_list.index(menorEQM1)
+        menorEQM_col=EQM1.columns[position1]
+        
+        nZeroCoef=float(EQM1.columns[position1][3:])
+        eps=EQM1.loc[EQM1[menorEQM_col].isin([menorEQM1])].index.item()
+        
+        
+        print ("My program took", time.time() - start_time, "seconds to run") 
         print('O epsilon e o número de coeficientes diferente de zero que apresentam'
-              'o menor erro de previsão são iguais a %.1f' % eps,nZeroCoef )               
-
-        return eps,nZeroCoef
+        'o menor erro de previsão são iguais a %.1f' % eps,nZeroCoef) 
+        return nZeroCoef, eps
     
-    eps,nZeroCoef = lars_classificator(X_treino, X_teste, y_treino, y_teste)
-        
+    nZeroCoef,eps = lars_classificator(X_treino, X_teste, y_treino, y_teste)
+    
     model5=Lars(fit_intercept=True, verbose=False, normalize=True, 
-                                            n_nonzero_coefs=int(nZeroCoef), eps=eps, 
-                                            copy_X=True, fit_path=True, positive=False)      
-    model5_fit=model5.fit(X_treino, y_treino)    
-    R25 = model5_fit.score(X_treino, y_treino)  
+                n_nonzero_coefs=int(nZeroCoef), eps=eps, copy_X=True, fit_path=True, 
+                positive=False) 
+    model5_fit=model5.fit(X_treino, y_treino) 
+    R25 = model5_fit.score(X_treino, y_treino) 
     
-             # make predictions
+    # make predictions
     y_predictions5 = model5_fit.predict(X_teste)
-    y_predictions5= pd.DataFrame(y_predictions5, index=teste)   #previsão
+    y_predictions5= pd.DataFrame(y_predictions5, index=teste) #previsão
     
     EQM5 = mean_squared_error(y_teste, y_predictions5)
     resid5 = np.sqrt(EQM5)
     print('Test MSE: %.3f' % EQM5,resid5)
-         
+    
     accuracy_5 = r2_score(y_teste, y_predictions5)
-    R2_5_teste = model5_fit.score(X_teste, y_teste)  
-    print ('accuracy, R2_teste: %.3f' % accuracy_5, R2_5_teste)      
-            
+    R2_5_teste = model5_fit.score(X_teste, y_teste) 
+    print ('accuracy, R2_teste: %.3f' % accuracy_5, R2_5_teste) 
+    
+    
+    
     if forecastHorizon>1: 
-        plt.figure()    
+        plt.figure() 
         pyplot.plot(y_treino, label='Treino')
         pyplot.plot(y_teste, color='black', label='Teste')
         pyplot.plot(y_predictions5, color='red', label='Previsão')
@@ -685,67 +760,107 @@ Created on Fri Oct 12 19:33:42 2018
         plt.xticks(rotation=30)
         plt.title('Previsão Consumo de Energia Elétrica (LARS)')
         plt.grid()
-        plt.savefig('modelBR5_'+str(forecastHorizon)+'lag.png')   
+        # plt.savefig('modelBR5_'+str(forecastHorizon)+'lag.png') 
         pyplot.show()
-
-     
-        
-        
-        
-        
-        
-    #Lasso Lars
-    #trabalhoso (defininir alpha e eps)
-
     
-    #2) Lasso Lars (3 MENOR EQM)
-    from sklearn.linear_model import LassoLars    
     
-    LassoLars(alpha=alpha, fit_intercept=True, verbose=False, normalize=True, 
-              precompute=’auto’, max_iter=500, eps=eps, copy_X=True,
-              fit_path=True, positive=False)
+    
+    
+    #2) Lasso Lars  - OK
+    PAREI AQUI
+    
+    from sklearn.linear_model import LassoLars 
+    
+    #Olhar Default 
+    print(LassoLars().get_params()) 
+    
+    def lassoLars_classificator(X_treino, X_teste, y_treino, y_teste): 
+        # alpha_lassoLars_lista = [1e-15, 1e-8, 1e-5,1e-1,1, 5,20]
+        eps_LL_list=[1e-15, 1e-8,1e-3,1,20]
+        alpha_LL_lista=[1e-10,1e-8,1,10]
+        EQM1_lista=[]
+        EQM2_lista=[]
+        EQM3_lista=[]
+        EQM4_lista=[]
+
         
-    def lassoLars_classificator(X_treino, X_teste, y_treino, y_teste):    
-        alpha_lassoLars_lista = [1e-15, 1e-10, 1e-8, 1e-5,1e-4, 1e-3,1e-2,1e-1,1, 5, 10,20]
-        EQM_lista=[]
-        for alpha in alpha_lassoLars_lista:
-            model = LassoLars(alpha=alpha, fit_intercept=True, verbose=False, normalize=True, 
-              precompute=’auto’, max_iter=500, eps=eps, copy_X=True,
-              fit_path=True, positive=False)
-            model_fit=model.fit(X_treino,y_treino)
-           
+        for eps in eps_LL_list:
+            model=LassoLars(alpha=alpha_LL_lista[0],fit_intercept=True, verbose=False, normalize=True, 
+                            max_iter=500, eps=eps, copy_X=True,fit_path=True, positive=False) 
+            model_fit=model.fit(X_treino, y_treino)
+        
             y_predictions = model_fit.predict(X_teste)
-            EQM_lista.append(np.sqrt(mean_squared_error(y_teste, y_predictions)))
-#            print(EQM_lista)
+            EQM1_lista.append(np.sqrt(mean_squared_error(y_teste, y_predictions)))
             
-        EQM=pd.DataFrame(columns=['alpha', 'resíduo'], index=list(range(len(alpha_lassoLars_lista))))
-        EQM['alpha']=alpha_ridge
-        EQM['resíduo']=EQM_lista
-        print(EQM.sort_values(by='resíduo', ascending=True)[0:5])
-        alpha=EQM.sort_values(by='resíduo', ascending=True)[0:1]['alpha'].item()
-        print('O alpha que apresente o menor erro de previsão é igual a %.1f' % alpha)        
-        return alpha
+        for eps in eps_LL_list:
+            model=LassoLars(alpha=alpha_LL_lista[1],fit_intercept=True, verbose=False, normalize=True, 
+                            max_iter=500, eps=eps, copy_X=True,fit_path=True, positive=False) 
+            model_fit=model.fit(X_treino, y_treino)
+        
+            y_predictions = model_fit.predict(X_teste)
+            EQM2_lista.append(np.sqrt(mean_squared_error(y_teste, y_predictions)))
 
+        for eps in eps_LL_list:
+            model=LassoLars(alpha=alpha_LL_lista[2],fit_intercept=True, verbose=False, normalize=True, 
+                            max_iter=500, eps=eps, copy_X=True,fit_path=True, positive=False) 
+            model_fit=model.fit(X_treino, y_treino)
+        
+            y_predictions = model_fit.predict(X_teste)
+            EQM3_lista.append(np.sqrt(mean_squared_error(y_teste, y_predictions)))  
+            
+        for eps in eps_LL_list:
+            model=LassoLars(alpha=alpha_LL_lista[1],fit_intercept=True, verbose=False, normalize=True, 
+                            max_iter=500, eps=eps, copy_X=True,fit_path=True, positive=False) 
+            model_fit=model.fit(X_treino, y_treino)
+        
+            y_predictions = model_fit.predict(X_teste)
+            EQM4_lista.append(np.sqrt(mean_squared_error(y_teste, y_predictions)))
+            
+        
+        EQM1=pd.DataFrame(columns=['EQM1', 'EQM2','EQM3', 'EQM4'], index=eps_LL_list)
+        EQM1['EQM1']=EQM1_lista
+        EQM1['EQM2']=EQM2_lista
+        EQM1['EQM3']=EQM3_lista
+        EQM1['EQM4']=EQM4_lista
+        
+        menorEQM1_list=[sorted(EQM1_lista)[0],sorted(EQM2_lista)[0],
+        sorted(EQM3_lista)[0],sorted(EQM4_lista)[0]] 
+        menorEQM1=sorted(menorEQM1_list)[0]
+        
+        position=menorEQM1_list.index(menorEQM1)
+        menorEQM_col=EQM1.columns[position]
+        
+        alpha=alpha_LL_lista[position]
+        eps=EQM1.loc[EQM1[menorEQM_col].isin([menorEQM1])].index.item()
+        
+        print ("My program took", time.time() - start_time, "seconds to run") 
+        return alpha, eps
 
-    model6 = linear_model.LassoLars(alpha=0.01).fit(X_treino,y_treino)
-    print(model6.coef_) 
-    coef6=model6.coef_
     
-    R26 = model6.score(X_treino, y_treino) 
-  
-    y_predictions6 = model6.predict(X_teste)
-    y_predictions6= pd.DataFrame(y_predictions6, index=teste)   #previsão
-
+    alpha, eps =lassoLars_classificator(X_treino, X_teste, y_treino, y_teste)
+    
+    
+    model6=LassoLars( alpha=alpha, fit_intercept=True, verbose=False, normalize=True, 
+                     max_iter=500, eps=eps, copy_X=True,fit_path=True, positive=False) 
+    model6_fit=model6.fit(X_treino, y_treino)
+    coef6=model6_fit.coef_
+    
+    R26 = model6_fit.score(X_treino, y_treino) 
+    
+    y_predictions6 = model6_fit.predict(X_teste)
+    y_predictions6= pd.DataFrame(y_predictions6, index=teste) #previsão
+    
     EQM6 = mean_squared_error(y_teste, y_predictions6)
     resid6 = np.sqrt(EQM6)
     print('Test MSE: %.3f' % EQM6,resid6)
     
     accuracy_6 = r2_score(y_teste, y_predictions6)
-    R2_6_teste = model6.score(X_teste, y_teste)  
-    print ('accuracy, R2_teste: %.3f' % accuracy_6, R2_6_teste)    
-        
+    R2_6_teste = model6.score(X_teste, y_teste) 
+    print ('accuracy, R2_teste: %.3f' % accuracy_6, R2_6_teste) 
+           
+    
     if forecastHorizon>1: 
-        plt.figure()    
+        plt.figure() 
         pyplot.plot(y_treino, label='Treino')
         pyplot.plot(y_teste, color='black', label='Teste')
         pyplot.plot(y_predictions6, color='red', label='Previsão')
@@ -755,200 +870,195 @@ Created on Fri Oct 12 19:33:42 2018
         plt.xticks(rotation=30)
         plt.title('Previsão Consumo de Energia Elétrica (LASSO LARS)')
         plt.grid()
-        plt.savefig('modelBR6_'+str(forecastHorizon)+'lag.png')   
-        pyplot.show() 
+        # plt.savefig('modelBR6_'+str(forecastHorizon)+'lag.png') 
+        pyplot.show()
 
-    
-    
-    
-    
-    
-    
-    #3) Lasso Lars com Cross Validation (2 menor EQM)
-    #Ta demorando muito. Verificar onde é e retirar. (a partir do 50)
+
+        
+        
+     #3) Lasso Lars com Cross Validation - DEMORA
     
     from sklearn.linear_model import LassoLarsCV
     import time
     
+    #Olhar Default 
+    print(LassoLarsCV().get_params())
+    
     def lassoLarsCV_classificator(X_treino, X_teste, y_treino, y_teste):
-        eps_LassoLarsCV_list = [1e-10, 1e-8, 1e-5,1e-4, 1e-3,1e-2,1e-1, 1, 5]
+    
+        eps_LassoLarsCV_list = [1e-8, 1, 20]
+        
         EQM3_lista=[]
         EQM10_lista=[]
         EQM50_lista=[]
         EQM100_lista=[]
-        EQM500_lista=[]
-    
+        
         for eps in eps_LassoLarsCV_list:
-                start_time = time.time()
-                model= LassoLarsCV(fit_intercept=True, verbose=False, max_iter=500, 
-                           normalize=True, cv=3, max_n_alphas=1000, eps=eps, copy_X=True, 
-                           positive=False)      
-                model_fit=model.fit(X_treino, y_treino)
-                
-                y_predictions = model_fit.predict(X_teste)
-                EQM3_lista.append(np.sqrt(mean_squared_error(y_teste, y_predictions)))
-                print(sorted(EQM3_lista))
-        print ("My program took", time.time() - start_time, "seconds to run")
-
+            start_time = time.time()
+            model= LassoLarsCV(fit_intercept=True, verbose=False, max_iter=500, 
+                               normalize=True, cv=3, max_n_alphas=1000, eps=eps, copy_X=True, 
+                               positive=False) 
+            model_fit=model.fit(X_treino, y_treino)
+            
+            y_predictions = model_fit.predict(X_teste)
+            EQM3_lista.append(np.sqrt(mean_squared_error(y_teste, y_predictions)))
+            print(EQM3_lista)
+            print(sorted(EQM3_lista)[0])
+            print ("My program took", time.time() - start_time, "seconds to run")
+        
         for eps in eps_LassoLarsCV_list:
-                start_time = time.time()
-                model= LassoLarsCV(fit_intercept=True, verbose=False, max_iter=500, 
-                           normalize=True, cv=10, max_n_alphas=1000, eps=eps, copy_X=True, 
-                           positive=False)      
-                model_fit=model.fit(X_treino, y_treino)
-                
-                y_predictions = model_fit.predict(X_teste)
-                EQM10_lista.append(np.sqrt(mean_squared_error(y_teste, y_predictions)))
-                print(sorted(EQM10_lista))
-        print ("My program took", time.time() - start_time, "seconds to run")
-
-                
+            start_time = time.time()
+            model= LassoLarsCV(fit_intercept=True, verbose=False, max_iter=500, 
+                               normalize=True, cv=10, max_n_alphas=1000, eps=eps, copy_X=True, 
+                               positive=False) 
+            model_fit=model.fit(X_treino, y_treino)
+            
+            y_predictions = model_fit.predict(X_teste)
+            EQM10_lista.append(np.sqrt(mean_squared_error(y_teste, y_predictions)))
+            print(EQM10_lista)
+            print(sorted(EQM10_lista)[0]) 
+            print ("My program took", time.time() - start_time, "seconds to run")
+            
         for eps in eps_LassoLarsCV_list:
-                start_time = time.time()
-                model= LassoLarsCV(fit_intercept=True, verbose=False, max_iter=500, 
-                           normalize=True, cv=50, max_n_alphas=1000, eps=eps, copy_X=True, 
-                           positive=False)     
-                model_fit=model.fit(X_treino, y_treino)
-                
-                y_predictions = model_fit.predict(X_teste)
-                print(sorted(EQM50_lista))
-        print ("My program took", time.time() - start_time, "seconds to run")                
-                
+            start_time = time.time()
+            model= LassoLarsCV(fit_intercept=True, verbose=False, max_iter=500, 
+                               normalize=True, cv=50, max_n_alphas=1000, eps=eps, copy_X=True, 
+                               positive=False) 
+            model_fit=model.fit(X_treino, y_treino)
+            
+            y_predictions = model_fit.predict(X_teste)
+            EQM50_lista.append(np.sqrt(mean_squared_error(y_teste, y_predictions)))
+            print(EQM50_lista)
+            print(sorted(EQM50_lista)[0])
+            print ("My program took", time.time() - start_time, "seconds to run") 
+        
         for eps in eps_LassoLarsCV_list:
-                start_time = time.time()
-                model= LassoLarsCV(fit_intercept=True, verbose=False, max_iter=500, 
+            start_time = time.time()
+            model= LassoLarsCV(fit_intercept=True, verbose=False, max_iter=500, 
                            normalize=True, cv=100, max_n_alphas=1000, eps=eps, copy_X=True, 
-                           positive=False)     
-                model_fit=model.fit(X_treino, y_treino)
-                
-                y_predictions = model_fit.predict(X_teste)
-                print(sorted(EQM100_lista))
-        print ("My program took", time.time() - start_time, "seconds to run")  
-              
-        for eps in eps_LassoLarsCV_list:
-                start_time = time.time()
-                model= LassoLarsCV(fit_intercept=True, verbose=False, max_iter=500, 
-                           normalize=True, cv=500, max_n_alphas=1000, eps=eps, copy_X=True, 
-                           positive=False)    
-                model_fit=model.fit(X_treino, y_treino)
-                
-                y_predictions = model_fit.predict(X_teste)
-                print(sorted(EQM500_lista))
-        print ("My program took", time.time() - start_time, "seconds to run")
+                           positive=False) 
+            model_fit=model.fit(X_treino, y_treino)
         
-                
-        EQM=pd.DataFrame(columns=['EQM3', 'EQM10','EQM50', 'EQM100','EQM500'], index=eps_LassoLarsCV_list)
-        EQM['EQM3']=EQM1_lista
-        EQM['EQM10']=EQM10_lista
-        EQM['EQM50']=EQM50_lista
-        EQM['EQM100']=EQM100_lista
-        EQM['EQM500']=EQM500_lista
+            y_predictions = model_fit.predict(X_teste)
+            EQM100_lista.append(np.sqrt(mean_squared_error(y_teste, y_predictions)))
+            print(EQM100_lista)
+            print(sorted(EQM100_lista)[0])
+            print ("My program took", time.time() - start_time, "seconds to run") 
         
-        EQM1_sorted=sorted(EQM['EQM3'])        
-        EQM10_sorted=sorted(EQM['EQM10'])        
-        EQM50_sorted=sorted(EQM['EQM50'])        
-        EQM100_sorted=sorted(EQM['EQM100'])        
-        EQM500_sorted=sorted(EQM['EQM500'])
+        EQM1=pd.DataFrame(columns=['EQM3', 'EQM10','EQM50', 'EQM100'], index=eps_LassoLarsCV_list)
+        EQM1['EQM3']=EQM3_lista
+        EQM1['EQM10']=EQM10_lista
+        EQM1['EQM50']=EQM50_lista
+        EQM1['EQM100']=EQM100_lista
         
-        menorEQM_list=[EQM3_sorted[0],EQM10_sorted[0],EQM50_sorted[0],
-                  EQM100_sorted[0],EQM500_sorted[0]]        
-        menorEQM=sorted(menorEQM_list)[0]
+        menorEQM1_list=[sorted(EQM3_lista)[0],sorted(EQM10_lista)[0],
+        sorted(EQM50_lista)[0],sorted(EQM100_lista)[0]] 
+        menorEQM1=sorted(menorEQM1_list)[0]
         
-        position=menorEQM_list.index(menorEQM)
-        menorEQM_col=EQM.columns[position]
-
-        nZeroCoef=float(EQM.columns[position][3:])
-        eps=EQM.loc[EQM[menorEQM_col].isin([menorEQM])].index.item()
-        print('O epsilon e o númerocv que apresentam o menor erro de previsão são iguais a %.1f' % eps,nZeroCoef)               
-
-        return eps,cv
+        position1=menorEQM1_list.index(menorEQM1)
+        menorEQM_col=EQM1.columns[position1]
+        
+        cv=int(EQM1.columns[position1][3:])
+        eps=EQM1.loc[EQM1[menorEQM_col].isin([menorEQM1])].index.item()
+        
+        print ("My program took", time.time() - start_time, "seconds to run") 
+        return cv, eps
     
-        model7= LassoLarsCV(fit_intercept=True, verbose=False, max_iter=500, 
-                           normalize=True, cv=10, max_n_alphas=1000, eps=eps, 
-                           copy_X=True, positive=False)    
-        
-        model7_fit = LassoLarsCV(cv=50).fit(X_treino,y_treino)
-        print(model7_fit.coef_)    
-        coef7=model7_fit.coef_
-        
-        R27 = model7_fit.score(X_treino, y_treino) 
-        
-        y_predictions7 = model7_fit.predict(X_teste)
-        y_predictions7= pd.DataFrame(y_predictions7, index=teste)   #previsão
+    cv, eps = lassoLarsCV_classificator(X_treino, X_teste, y_treino, y_teste)
     
-        EQM7 = mean_squared_error(y_teste, y_predictions7)
-        resid7 = np.sqrt(EQM7)
-        print('Test MSE: %.3f' % EQM7,resid7)
-        
-        accuracy_7 = r2_score(y_teste, y_predictions7)
-        R2_7_teste = model7.score(X_teste, y_teste)  
-        print ('accuracy, R2_teste: %.3f' % accuracy_7, R2_7_teste)
-               
-        if forecastHorizon>1: 
-            plt.figure()    
-            pyplot.plot(y_treino, label='Treino')
-            pyplot.plot(y_teste, color='black', label='Teste')
-            pyplot.plot(y_predictions7, color='red', label='Previsão')
-            #dados['CEE_BR_TOT'].plot(color='black', label='Brasil')
-            plt.legend(loc='best')
-            plt.ylabel('KW/h')
-            plt.xticks(rotation=30)
-            plt.title('Previsão Consumo de Energia Elétrica (LASSO LARS CV)')
-            plt.grid()
-            plt.savefig('modelBR7_'+str(forecastHorizon)+'lag.png')   
-            pyplot.show() 
     
-        
-        
-     
-                                #Ridge Regression 
-                                
+    model7= LassoLarsCV(fit_intercept=True, verbose=False, max_iter=500, 
+                        normalize=True, cv=cv, max_n_alphas=1000, eps=eps, 
+                        copy_X=True, positive=False) 
+    model7_fit = model7.fit(X_treino,y_treino)
+    print(model7_fit.coef_) 
+    coef7=model7_fit.coef_ 
+    R27 = model7_fit.score(X_treino, y_treino) 
+    
+    y_predictions7 = model7_fit.predict(X_teste)
+    y_predictions7= pd.DataFrame(y_predictions7, index=teste) #previsão
+    
+    EQM7 = mean_squared_error(y_teste, y_predictions7)
+    resid7 = np.sqrt(EQM7)
+    print('Test MSE: %.3f' % EQM7,resid7)
+    
+    accuracy_7 = r2_score(y_teste, y_predictions7)
+    R2_7_teste = model7.score(X_teste, y_teste) 
+    print ('accuracy, R2_teste: %.3f' % accuracy_7, R2_7_teste)
+    
+    
+    
+    if forecastHorizon>1: 
+        plt.figure() 
+        pyplot.plot(y_treino, label='Treino')
+        pyplot.plot(y_teste, color='black', label='Teste')
+        pyplot.plot(y_predictions7, color='red', label='Previsão')
+        #dados['CEE_BR_TOT'].plot(color='black', label='Brasil')
+        plt.legend(loc='best')
+        plt.ylabel('KW/h')
+        plt.xticks(rotation=30)
+        plt.title('Previsão Consumo de Energia Elétrica (LASSO LARS CV)')
+        plt.grid()
+        # plt.savefig('modelBR7_'+str(forecastHorizon)+'lag.png') 
+        pyplot.show() 
+    
+    
+    
+    #Ridge Regression - OK
+    
     import matplotlib.pyplot as plt
     from sklearn.linear_model import Ridge
-                                     
-    def ridge_classificator(X_treino, X_teste, y_treino, y_teste):    
+    
+    #Olhar Default 
+    print(Ridge().get_params())
+    
+    def ridge_classificator(X_treino, X_teste, y_treino, y_teste): 
         alpha_ridge_lista = [1e-15, 1e-10, 1e-8, 1e-5,1e-4, 1e-3,1e-2,1e-1, 1, 5, 10]
         EQM_lista=[]
         for alpha in alpha_ridge_lista:
             model = Ridge(alpha=alpha, fit_intercept=True, normalize=True, copy_X=True, 
-                  max_iter=None, tol=0.001, random_state=None)
+                          max_iter=None, tol=0.001, random_state=None)
             model_fit=model.fit(X_treino,y_treino)
-           
+        
             y_predictions = model_fit.predict(X_teste)
             print(alpha)
             EQM_lista.append(np.sqrt(mean_squared_error(y_teste, y_predictions)))
-#            print(EQM_lista)
-            
+            # print(EQM_lista)
+        
         EQM=pd.DataFrame(columns=['alpha', 'resíduo'], index=list(range(len(alpha_ridge_lista))))
         EQM['alpha']=alpha_ridge_lista
         EQM['resíduo']=EQM_lista
         print(EQM.sort_values(by='resíduo', ascending=True)[0:5])
+        EQM1=EQM.sort_values(by='resíduo', ascending=True)[0:1]['resíduo'].item()
         alpha=EQM.sort_values(by='resíduo', ascending=True)[0:1]['alpha'].item()
-        print('O alpha que apresente o menor erro de previsão é igual a %.1f' % alpha)        
+        print('O alpha que apresente o menor erro de previsão é igual a %.1f' % alpha) 
+        
         return alpha
-
-
+    
     alpha = ridge_classificator(X_treino, X_teste, y_treino, y_teste)
+    
     model8 = Ridge(alpha=alpha, fit_intercept=True, normalize=True, copy_X=True, 
-                  max_iter=None, tol=0.001, random_state=None)
+                   max_iter=None, tol=0.001, random_state=None)
     model8_fit=model8.fit(X_treino, y_treino)
     
-    coef8=np.transpose(model8_fit.coef_)    
+    coef8=np.transpose(model8_fit.coef_) 
     R28 = model8_fit.score(X_treino, y_treino) 
     
     y_predictions8 = model8_fit.predict(X_teste)
-    y_predictions8= pd.DataFrame(y_predictions8, index=teste)   #previsão
-
+    y_predictions8= pd.DataFrame(y_predictions8, index=teste) #previsão
+    
     EQM8 = mean_squared_error(y_teste, y_predictions8)
     resid8 = np.sqrt(EQM8)
     print('Test MSE: %.3f' % EQM8,resid8)
-        
+    
     accuracy_8 = r2_score(y_teste, y_predictions8)
-    R2_8_teste = model8_fit.score(X_teste, y_teste)  
-    print ('accuracy, R2_teste: %.3f' % accuracy_8, R2_8_teste)    
-        
+    R2_8_teste = model8_fit.score(X_teste, y_teste) 
+    print ('accuracy, R2_teste: %.3f' % accuracy_8, R2_8_teste) 
+    
+    
+    
     if forecastHorizon>1: 
-        plt.figure()    
+        plt.figure() 
         pyplot.plot(y_treino, label='Treino')
         pyplot.plot(y_teste, color='black', label='Teste')
         pyplot.plot(y_predictions8, color='red', label='Previsão')
@@ -958,46 +1068,133 @@ Created on Fri Oct 12 19:33:42 2018
         plt.xticks(rotation=30)
         plt.title('Previsão Consumo de Energia Elétrica (Ridge)')
         plt.grid()
-        plt.savefig('modelBR8_'+str(forecastHorizon)+'lag.png')   
+        # plt.savefig('modelBR8_'+str(forecastHorizon)+'lag.png') 
         pyplot.show() 
+        
+        
 
     
-
     
-                                #ElasticNet (4 MENOR EQM)
-                                
-    #1) ElasticNet sem CV dava o mesmo resultado que o com CV
-    #Vai dar trabalho
     
-    l1_ratio = [0,0.25,0.5,0.75,1]
-    eps_list = [1e-15, 1e-10, 1e-8, 1e-5,1e-4, 1e-3,1e-2, 1, 5, 10,20]
-
+    #ElasticNet     
     
-    model=ElasticNet(alpha=alpha, l1_ratio=0.5, fit_intercept=True, normalize=False, 
-                     precompute=False, max_iter=1000, copy_X=True, tol=0.0001, 
-                     warm_start=False, positive=False, random_state=None)
-   
-    from sklearn.linear_model import ElasticNet
-   
-    model90 = ElasticNet().fit(X_treino,y_treino)
-    print(model90.coef_) 
+    #1) ElasticNet sem CV  - OK
+    
+    from sklearn.linear_model import ElasticNet 
+    
+    #Olhar Default 
+    print(ElasticNet().get_params())
+    
+    
+    def ElasticNet_classificator(X_treino, X_teste, y_treino, y_teste):
+        alpha_EN_list = [1e-15, 1e-10, 1e-8, 1e-5,1e-2, 1, 5,20]
+        l1_ratio_list=[0.01,0.25,0.5,0.75,0.99]
+        EQM1_lista=[]
+        EQM2_lista=[]
+        EQM3_lista=[]
+        EQM4_lista=[]
+        EQM5_lista=[]
+        
+        for alpha in alpha_EN_list:
+            model=ElasticNet(alpha=alpha, l1_ratio=0.01, fit_intercept=True, normalize=False, 
+                             precompute=False, max_iter=1000, copy_X=True, tol=0.0001, 
+                             warm_start=False, positive=False, random_state=None) 
+            model_fit=model.fit(X_treino, y_treino)
+            
+            y_predictions = model_fit.predict(X_teste)
+            EQM1_lista.append(np.sqrt(mean_squared_error(y_teste, y_predictions)))
+        
+        for alpha in alpha_EN_list:
+            model=ElasticNet(alpha=alpha, l1_ratio=0.25, fit_intercept=True, normalize=False, 
+                             precompute=False, max_iter=1000, copy_X=True, tol=0.0001, 
+                             warm_start=False, positive=False, random_state=None) 
+            model_fit=model.fit(X_treino, y_treino)
+            
+            y_predictions = model_fit.predict(X_teste)
+            EQM2_lista.append(np.sqrt(mean_squared_error(y_teste, y_predictions)))
+        
+        for alpha in alpha_EN_list:
+            model=ElasticNet(alpha=alpha, l1_ratio=0.5, fit_intercept=True, normalize=False, 
+                             precompute=False, max_iter=1000, copy_X=True, tol=0.0001, 
+                             warm_start=False, positive=False, random_state=None) 
+            model_fit=model.fit(X_treino, y_treino)
+            
+            y_predictions = model_fit.predict(X_teste)
+            EQM3_lista.append(np.sqrt(mean_squared_error(y_teste, y_predictions)))
+            
+        
+        for alpha in alpha_EN_list:
+            model=ElasticNet(alpha=alpha, l1_ratio=0.75, fit_intercept=True, normalize=False, 
+                             precompute=False, max_iter=1000, copy_X=True, tol=0.0001, 
+                             warm_start=False, positive=False, random_state=None) 
+            model_fit=model.fit(X_treino, y_treino)
+        
+            y_predictions = model_fit.predict(X_teste)
+            EQM4_lista.append(np.sqrt(mean_squared_error(y_teste, y_predictions)))
+        
+        for alpha in alpha_EN_list:
+            model=ElasticNet(alpha=alpha, l1_ratio=0.99, fit_intercept=True, normalize=False, 
+                             precompute=False, max_iter=1000, copy_X=True, tol=0.0001, 
+                             warm_start=False, positive=False, random_state=None) 
+            model_fit=model.fit(X_treino, y_treino)
+        
+            y_predictions = model_fit.predict(X_teste)
+            EQM5_lista.append(np.sqrt(mean_squared_error(y_teste, y_predictions)))
+        
+        
+        EQM1=pd.DataFrame(columns=['EQM1', 'EQM2','EQM3', 'EQM4','EQM5'], index=alpha_EN_list)
+        EQM1['EQM1']=EQM1_lista
+        EQM1['EQM2']=EQM2_lista
+        EQM1['EQM3']=EQM3_lista
+        EQM1['EQM4']=EQM4_lista
+        EQM1['EQM5']=EQM5_lista
+        
+        menorEQM1_list=[sorted(EQM1_lista)[0],sorted(EQM2_lista)[0],sorted(EQM3_lista)[0],
+        sorted(EQM4_lista)[0],sorted(EQM5_lista)[0]] 
+        menorEQM1=sorted(menorEQM1_list)[0]
+        
+        position1=menorEQM1_list.index(menorEQM1)
+        menorEQM_col=EQM1.columns[position1]
 
+        l1_ratio=l1_ratio_list[position1]
+        alpha=EQM1.loc[EQM1[menorEQM_col].isin([menorEQM1])].index.item()
+        
+        
+        cv=int(EQM1.columns[position1][3:])
+        
+        
+        print ("My program took", time.time() - start_time, "seconds to run") 
+        print('O epsilon e o número de coeficientes diferente de zero que apresentam'
+        'o menor erro de previsão são iguais a %.1f' % eps,nZeroCoef ) 
+        return l1_ratio, alpha
+    
+    
+    l1_ratio, alpha = ElasticNet_classificator(X_treino, X_teste, y_treino, y_teste)
+    
+    model90=ElasticNet(alpha=alpha, l1_ratio=l1_ratio, fit_intercept=True, normalize=False, 
+                       precompute=False, max_iter=1000, copy_X=True, tol=0.0001, 
+                       warm_start=False, positive=False, random_state=None) 
+    model90_fit=model90.fit(X_treino, y_treino)
+    
+    y_predictions90 = model90_fit.predict(X_teste)
+    
     R290 = model90.score(X_treino, y_treino) 
     coef90=model90.coef_
     
     y_predictions90 = model90.predict(X_teste)
-    y_predictions90= pd.DataFrame(y_predictions90, index=teste)   #previsão
-
+    y_predictions90= pd.DataFrame(y_predictions90, index=teste) #previsão
+    
     EQM90 = mean_squared_error(y_teste, y_predictions90)
     resid90 = np.sqrt(EQM90)
     print('Test MSE: %.3f' % EQM90,resid90)
     
     accuracy_90 = r2_score(y_teste, y_predictions90)
-    R2_90_teste = model90.score(X_teste, y_teste)  
-    print ('accuracy, R2_teste: %.3f' % accuracy_90, R2_90_teste)
-        
+    R2_90_teste = model90.score(X_teste, y_teste) 
+    print ('accuracy, R2_teste: %.3f' % accuracy_90, R2_90_teste) 
+    
+    
     if forecastHorizon>1: 
-        plt.figure()    
+        plt.figure() 
         pyplot.plot(y_treino, label='Treino')
         pyplot.plot(y_teste, color='black', label='Teste')
         pyplot.plot(y_predictions90, color='red', label='Previsão')
@@ -1007,99 +1204,172 @@ Created on Fri Oct 12 19:33:42 2018
         plt.xticks(rotation=30)
         plt.title('Previsão Consumo de Energia Elétrica (ElasticNet)')
         plt.grid()
-        plt.savefig('modelBR9_'+str(forecastHorizon)+'lag.png')  
+        # plt.savefig('modelBR9_'+str(forecastHorizon)+'lag.png') 
         pyplot.show() 
-    
-#    
-#    #2) ElasticNetCV
-#    
-#    from sklearn.linear_model import ElasticNetCV       
-#
-#    model9 = ElasticNetCV(alphas=None, copy_X=True, cv=100, eps=0.001, fit_intercept=True,
-#                          l1_ratio=0.5, max_iter=1000, n_alphas=100, n_jobs=None,
-#                          normalize=False, positive=False, precompute='auto', random_state=0,
-#                          selection='cyclic', tol=0.0001, verbose=0).fit(X_treino,y_treino)
-#    print(model9.coef_) 
-#
-#    R29 = model9.score(X_treino, y_treino) 
-#    coef9=model9.coef_
-#    
-#    y_predictions9 = model9.predict(X_teste)
-#    y_predictions9= pd.DataFrame(y_predictions9, index=teste)   #previsão
-#
-#    EQM9 = mean_squared_error(y_teste, y_predictions9)
-#    resid9 = np.sqrt(EQM9)
-#    print('Test MSE: %.3f' % EQM9,resid9)
-#    
-#    accuracy_9 = r2_score(y_teste, y_predictions9)
-#    R2_9_teste = model9.score(X_teste, y_teste)  
-#    print ('accuracy, R2_teste: %.3f' % accuracy_9, R2_9_teste)
-#        
-#    plt.figure()    
-#    pyplot.plot(y_treino, label='Treino')
-#    pyplot.plot(y_teste, color='black', label='Teste')
-#    pyplot.plot(y_predictions9, color='red', label='Previsão')
-#    #dados['CEE_BR_TOT'].plot(color='black', label='Brasil')
-#    plt.legend(loc='best')
-#    plt.ylabel('KW/h')
-#    plt.xticks(rotation=30)
-#    plt.title('Previsão Consumo de Energia Elétrica (ElasticNetCV)')
-#    #plt.grid()
-#    plt.savefig('modelBR9.png')   
-#    pyplot.show() 
-
-    
-   #Random Forest  (MELHOR EQM)
-   #Vai dar trabalho
-   
-    from sklearn.ensemble import RandomForestRegressor
-
-    {'bootstrap': True,
- 'criterion': 'mse',
- 'max_depth': None,
- 'max_features': 'auto',
- 'max_leaf_nodes': None,
- 'min_impurity_decrease': 0.0,
- 'min_impurity_split': None,
- 'min_samples_leaf': 1,
- 'min_samples_split': 2,
- 'min_weight_fraction_leaf': 0.0,
- 'n_estimators': 10,
- 'n_jobs': 1,
- 'oob_score': False,
- 'random_state': 42,
- 'verbose': 0,
- 'warm_start': False}    
-    
-    model=RandomForestRegressor(n_estimators=1000, max_depth=None, min_samples_split=2, 
-                                min_samples_leaf=1, min_weight_fraction_leaf=0.0, 
-                                max_leaf_nodes=None, min_impurity_decrease=0.0, 
-                                min_impurity_split=None, bootstrap=True, oob_score=False, 
-                                n_jobs=1, random_state=None, verbose=0, warm_start=False)
         
     
-#    model10 = RandomForestRegressor(n_estimators = 1000, random_state = 0)
     
-    model10_fit=model.fit(X_treino, y_treino)
+    
+    
+    #2) ElasticNetCV
+    
+    from sklearn.linear_model import ElasticNetCV
+    #Tem que mudar o CV
+    
+    #Verificar Default
+    print(ElasticNetCV().get_params())
+    
+    def ElasticNetCV_classificator(X_treino, X_teste, y_treino, y_teste):
+        l1_ratio_list=[0.01,0.25,0.5,0.75,0.99]
+        EQM_lista=[]
+        
+        for l1_ratio in l1_ratio_list:
+            model=ElasticNetCV(alphas=None, copy_X=True, eps=0.001, fit_intercept=True,
+                               l1_ratio=l1_ratio, max_iter=1000, n_alphas=100, n_jobs=None,
+                               normalize=True, positive=False, precompute='auto', random_state=0,
+                               selection='cyclic', tol=0.0001, verbose=0) 
+        
+        model_fit=model.fit(X_treino, y_treino)
+        
+        y_predictions = model_fit.predict(X_teste)
+        EQM_lista.append(np.sqrt(mean_squared_error(y_teste, y_predictions)))
+        
+        menorEQM1=sorted(EQM_lista)[0].item()
+        position1=EQM_lista.index(menorEQM1)
+        l1_ratio=l1_ratio_list[position1]
+            
+        print ("My program took", time.time() - start_time, "seconds to run") 
+        return l1_ratio, eps
+    
+
+    l1_ratio, eps = ElasticNetCV_classificator(X_treino, X_teste, y_treino, y_teste)
+
+    model9 = ElasticNetCV(alphas=None, copy_X=True, eps=0.001, fit_intercept=True,
+                          l1_ratio=l1_ratio, max_iter=1000, n_alphas=100, n_jobs=None,
+                          normalize=True, positive=False, precompute='auto', random_state=0,
+    selection='cyclic', tol=0.0001, verbose=0).fit(X_treino,y_treino)
+    
+    model9_fit=model9.fit(X_treino,y_treino)
+    print(model9_fit.coef_) 
+    
+    R29 = model9_fit.score(X_treino, y_treino) 
+    coef9=model9_fit.coef_
+    
+    y_predictions9 = model9_fit.predict(X_teste)
+    y_predictions9= pd.DataFrame(y_predictions9, index=teste) #previsão
+    
+    EQM9 = mean_squared_error(y_teste, y_predictions9)
+    resid9 = np.sqrt(EQM9)
+    print('Test MSE: %.3f' % EQM9,resid9)
+    
+    accuracy_9 = r2_score(y_teste, y_predictions9)
+    R2_9_teste = model9.score(X_teste, y_teste) 
+    print ('accuracy, R2_teste: %.3f' % accuracy_9, R2_9_teste)
+    
+    
+    if forecastHorizon>1: 
+        plt.figure() 
+        pyplot.plot(y_treino, label='Treino')
+        pyplot.plot(y_teste, color='black', label='Teste')
+        pyplot.plot(y_predictions9, color='red', label='Previsão')
+        #dados['CEE_BR_TOT'].plot(color='black', label='Brasil')
+        plt.legend(loc='best')
+        plt.ylabel('KW/h')
+        plt.xticks(rotation=30)
+        plt.title('Previsão Consumo de Energia Elétrica (ElasticNetCV)')
+        #plt.grid()
+        plt.savefig('modelBR9.png') 
+        pyplot.show() 
+    
+    
+    
+    
+    #Random Forest (MELHOR EQM)
+    import sklearn 
+    from sklearn.ensemble import RandomForestRegressor
+    from pprint import pprint
+    
+    from sklearn import RandomizedSearchCV
+    from sklearn.model_selection import GridSearchCV
+    from sklearn.model_selection import RandomizedSearchCV
+    
+    # Look at parameters used by our current forest
+    pprint(RandomForestRegressor().get_params())
+    
+    
+    
+    def RandomForest_classificator(X_treino, X_teste, y_treino, y_teste):
+        max_features_list=['auto', None]
+        n_estimators_list=[10,100,1000]
+        EQM1_lista=[]
+        EQM2_lista=[]
+        
+        for n_estimators in n_estimators_list:
+            model=RandomForestRegressor(n_estimators=n_estimators, max_depth=None, min_samples_split=2, 
+                                        min_samples_leaf=1, min_weight_fraction_leaf=0, max_leaf_nodes=None, 
+                                        bootstrap=True, oob_score=False,n_jobs=1, random_state=None, 
+                                        verbose=0, warm_start=False, max_features=max_features_list[0])
+            model_fit=model.fit(X_treino, y_treino)
+            y_predictions = model_fit.predict(X_teste)
+        
+            EQM1_lista.append(np.sqrt(mean_squared_error(y_teste, y_predictions)))
+            print(EQM1_lista)
+            
+        for n_estimators in n_estimators_list:
+            model=RandomForestRegressor(n_estimators=n_estimators, max_depth=None, min_samples_split=2, 
+                                        min_samples_leaf=1, min_weight_fraction_leaf=0, max_leaf_nodes=None, 
+                                        bootstrap=True, oob_score=False,n_jobs=1, random_state=None, 
+                                        verbose=0, warm_start=False, max_features=max_features_list[1])
+            model_fit=model.fit(X_treino, y_treino)
+            y_predictions = model_fit.predict(X_teste)
+        
+        EQM2_lista.append(np.sqrt(mean_squared_error(y_teste, y_predictions)))
+        print(EQM2_lista)
+        
+        
+        menorEQM_lista=[sorted(EQM1_lista)[0].item(), sorted(EQM2_lista)[0].item()]
+        
+        EQM1=pd.DataFrame(columns=['EQM1', 'EQM2'], index=n_estimators_list)
+        EQM1['EQM1']=EQM1_lista
+        EQM1['EQM2']=EQM2_lista 
+        
+        menorEQM1_list=[sorted(EQM1_lista)[0],sorted(EQM2_lista)[0]] 
+        menorEQM1=sorted(menorEQM1_list)[0]
+        
+        position1=menorEQM1_list.index(menorEQM1)
+        n_estimators=n_estimators_list[position1]
+        max_features=max_features_list[position1]
+        
+        return n_estimators, max_features
+    
+    
+    
+    
+    model10=RandomForestRegressor(n_estimators=n_estimators, max_depth=None, min_samples_split=2, 
+                                  min_samples_leaf=1, min_weight_fraction_leaf=0, max_leaf_nodes=None, 
+                                  bootstrap=True, oob_score=False,n_jobs=1, random_state=None, 
+    verbose=0, warm_start=False, max_features=max_features_list)
+    
+    model10_fit=model10.fit(X_treino, y_treino)
     
     print(model10_fit.feature_importances_)
     coef10=model10_fit.feature_importances_
     
     R210 = model10_fit.score(X_treino, y_treino) 
-
+    
     y_predictions10 = model10_fit.predict(X_teste)
-    y_predictions10= pd.DataFrame(y_predictions10, index=teste)   #previsão
-
+    y_predictions10= pd.DataFrame(y_predictions10, index=teste) #previsão
+    
     EQM10 = mean_squared_error(y_teste, y_predictions10)
     resid10 = np.sqrt(EQM10)
     print('Test MSE: %.3f' % EQM10,resid10)
-        
+    
     accuracy_10 = r2_score(y_teste, y_predictions10)
-    R2_10_teste = model10_fit.score(X_teste, y_teste)  
-    print ('accuracy, R2_teste: %.3f' % accuracy_10, R2_10_teste)    
-        
-    if forecastHorizon>1:     
-        plt.figure()    
+    R2_10_teste = model10_fit.score(X_teste, y_teste) 
+    print ('accuracy, R2_teste: %.3f' % accuracy_10, R2_10_teste) 
+    
+    if forecastHorizon>1: 
+        plt.figure() 
         pyplot.plot(y_treino, label='Treino')
         pyplot.plot(y_teste, color='black', label='Teste')
         pyplot.plot(y_predictions10, color='red', label='Previsão')
@@ -1109,11 +1379,8 @@ Created on Fri Oct 12 19:33:42 2018
         plt.xticks(rotation=30)
         plt.title('Previsão Consumo de Energia Elétrica (Random Forest)')
         plt.grid()
-        plt.savefig('modelBR10_'+str(forecastHorizon)+'lag.png')   
-        pyplot.show() 
-#    
-    
-
+        # plt.savefig('modelBR10_'+str(forecastHorizon)+'lag.png') 
+        pyplot.show()
   
     
     
@@ -1240,10 +1507,8 @@ Created on Fri Oct 12 19:33:42 2018
     
 
 
-INCLUIR XBOOSTING
 INCLUIR RANDOM WALK
 DEFINIR OS LAGS OTIMOS
-VERIFICAR OS LAMBDAS (LASSO, RANDOM FOREST)
 
 
 
