@@ -169,9 +169,9 @@ agregado = np.hstack((consumo, variaveis))
 dados = pd.DataFrame(agregado, columns = colunas , index=periodo)  
 del consumo, variaveis, agregado
 
-
+ #Rodar30
 #Definir Horizonte de Previsão de X dias:    
-forecastHorizon=7
+forecastHorizon=1
 
 #A partir dos dois gráficos podemos decidir quantos lags usar
 #Vamos usar 3 lags para rodar os modelos
@@ -181,31 +181,30 @@ colunas=dados.columns
 X = pd.DataFrame(index=periodo)
 
 #    #modelo1
-modo=1
-for i in colunas:
-    X[i+'lag1']=dados[i].shift(forecastHorizon)
-    
-for i in colunas:
-    X[i+'lag2']=dados[i].shift(forecastHorizon+1)
-    
-for i in colunas:
-    X[i+'lag3']=dados[i].shift(forecastHorizon+2)
+#modo=1
+#for i in colunas:
+#    X[i+'lag1']=dados[i].shift(forecastHorizon)
+#    
+#for i in colunas:
+#    X[i+'lag2']=dados[i].shift(forecastHorizon+1)
+#    
+#for i in colunas:
+#    X[i+'lag3']=dados[i].shift(forecastHorizon+2)
 #   
  
 #modelo2
-#modo=2
-#for i in colunas:
-#    X[i+'lag1']=dados[i].shift(round(forecastHorizon))
-#    
-#for i in colunas:
-#    X[i+'lag2']=dados[i].shift(round(forecastHorizon*2))
-#    
-#for i in colunas:
-#    X[i+'lag3']=dados[i].shift(round(forecastHorizon*3))
+modo=2
+for i in colunas:
+    X[i+'lag1']=dados[i].shift(round(forecastHorizon))
+    
+for i in colunas:
+    X[i+'lag2']=dados[i].shift(round(forecastHorizon*2))
+    
+for i in colunas:
+    X[i+'lag3']=dados[i].shift(round(forecastHorizon*3))
 
 #modelo3
 #modo=3
-#
 #for i in colunas:
 #    X[i+'lag1']=dados[i].shift(round(forecastHorizon))
 #    
@@ -261,7 +260,7 @@ print(result)
    
 dec_seas = seasonal_decompose(y, model='multiplicative')
 fig = dec_seas.plot()
-#    plt.savefig('CEEBRseas.png')   
+plt.savefig('CEEBRseas.png')   
 
 
 
@@ -269,8 +268,8 @@ fig = dec_seas.plot()
 
 #Brasil
 autocorrelation_plot(dados['CEE_BR_TOT'])
-plt.title('Gráfico de Autocorrelação do CEE do Brasil')
- #   plt.savefig('CEEBRautocorr.png')   
+plt.title('Autocorrelation of Power Eletricity Consumption ')
+plt.savefig('CEEBRautocorr.png')   
 plt.show()
 
 #Agregado
@@ -279,15 +278,15 @@ fig = autocorrelation_plot(dados['CEE_SECO_TOT'], ax=axes[0])
 fig = autocorrelation_plot(dados['CEE_SUL_TOT'], ax=axes[1])
 fig = autocorrelation_plot(dados['CEE_NE_TOT'], ax=axes[2])
 fig = autocorrelation_plot(dados['CEE_N_TOT'], ax=axes[3])
-#    fig.tight_layout()
-#    plt.savefig('CEEautocorragreg.png')  
+#fig.tight_layout()
+#plt.savefig('CEEautocorragreg.png')  
 plt.show()
   
 
 
 #Lag Plot
-plot_acf(dados['CEE_BR_TOT'], lags=31)
-#    plt.savefig('CEEBRlag1.png')   
+plot_acf(dados['CEE_BR_TOT'], lags=40)
+plt.savefig('CEEBRlag1.png')   
 pyplot.show()
 
   
@@ -297,7 +296,7 @@ fig = sm.graphics.tsa.plot_acf(dados['CEE_SUL_TOT'], lags= 51, ax=axes[1], title
 fig = sm.graphics.tsa.plot_acf(dados['CEE_NE_TOT'], lags= 51, ax=axes[2], title= 'Nordeste')
 fig = sm.graphics.tsa.plot_acf(dados['CEE_N_TOT'], lags= 51, ax=axes[3], title='Norte')
 fig.tight_layout()
-#    plt.savefig('CEElag1agreg.png')   
+#plt.savefig('CEElag1agreg.png')   
 plt.show()
 
 
@@ -337,36 +336,39 @@ plt.show()
 #    adf_test(y_teste_diff_aux)     
 
 #1a diferença é estacionária
-#AR
+
+
+#AR - (1)
  
 #outro modelo arima (consegue decidir o numero de lags)
+
 model1 = ARIMA(y_treino, order=(15,1,0))
 model_fit1 = model1.fit()
 print('Lag: %s' % model_fit1.k_ar)
 print('Coefficients: %s' % model_fit1.params)
-R2_AR=r2_score(y_treino, model_fit1.predict(start=1, end=len(y_treino), dynamic=False))
+R21=r2_score(y_treino, model_fit1.predict(start=1, end=len(y_treino), dynamic=False))
 
 # make predictions
 y_predictions1 = model_fit1.predict(start=len(y_treino), end=len(y_treino)+len(y_teste)-1, dynamic=False)
-EQM_AR= mean_squared_error(y_teste, y_predictions1)
-resid_AR = np.sqrt(EQM_AR)   
-print('Test MSE: %.3f' % EQM_AR, resid_AR)
+EQM1= mean_squared_error(y_teste, y_predictions1)
+resid1 = np.sqrt(EQM1)   
+print('Test MSE: %.3f' % EQM1, resid1)
 print(model_fit1.summary())
 
-accuracy_AR = r2_score(y_teste, y_predictions1)
-R2_AR_teste = accuracy_1 
-print ('accuracy, R2_teste: %.3f' % accuracy_AR, R2_AR_teste) 
+accuracy_1 = r2_score(y_teste, y_predictions1)
+R2_1_teste = accuracy_1
+print ('accuracy, R2_teste: %.3f' % accuracy_1, R2_1_teste) 
 
 #    if forecastHorizon>1: 
 #        plt.figure()    
-#        pyplot.plot(y_treino_diff, label='Treino')
-#        pyplot.plot(y_teste_diff, color='black', label='Teste')
-#        pyplot.plot(y_predictions1, color='red', label='Previsão')
+#        pyplot.plot(y_treino_diff, label='Train')
+#        pyplot.plot(y_teste_diff, color='black', label='Test')
+#        pyplot.plot(y_predictions1 , label='Forecast')
 #        #dados['CEE_BR_TOT'].plot(color='black', label='Brasil')
 #        plt.legend(loc='best')
 #        plt.ylabel('KW/h')
 #        plt.xticks(rotation=30)
-#        plt.title('Previsão Consumo de Energia Elétrica (AR)')
+#        plt.title('Power Eletricity Consumption Forecast  (AR)')
 #        #plt.grid()
 #        plt.savefig('modelBR1_'+str(forecastHorizon)+'lag.png')  
 #        pyplot.show()
@@ -374,108 +376,107 @@ print ('accuracy, R2_teste: %.3f' % accuracy_AR, R2_AR_teste)
 
 
 
-#Random Walk
+#Random Walk (2)
 
-y_predictions0 = pd.DataFrame(data=list(y_treino.tail(forecastHorizon)), index=teste) #previsão
+y_predictions2 = pd.DataFrame(data=list(y_treino.tail(forecastHorizon)), index=teste) #previsão
 
-#    R20=r2_score(y_treino, y_predictions0)
-EQM0 = mean_squared_error(y_teste, y_predictions0) #EQM
-resid0 = np.sqrt(EQM0) #Resíduo
-print('Test MSE, Residual: %.3f' % EQM0, resid0)
-
-accuracy_0 = r2_score(y_teste, y_predictions0)
-R2_0_teste = sm.OLS(y_teste,X_teste).fit().rsquared
-print ('accuracy, R2_teste: %.3f' % accuracy_0, R2_0_teste)
-
-if forecastHorizon>1: 
-    plt.figure() 
-    pyplot.plot(y_treino, label='Treino')
-    pyplot.plot(y_teste, color='black', label='Teste')
-    pyplot.plot(y_predictions0, color='red', label='Previsão')
-    #dados['CEE_BR_TOT'].plot(color='black', label='Brasil')
-    plt.legend(loc='best')
-    plt.ylabel('KW/h')
-    plt.xticks(rotation=30)
-    plt.title('Previsão Consumo de Energia Elétrica (Random Walk)')
-    #plt.grid()
-    # plt.savefig('modelBR2_'+str(forecastHorizon)+'lag.png') 
-    pyplot.show() 
-
-
-
-
-                           #OLS                
-
-model2 = sm.OLS(y_treino,X_treino)                  #modelo
-model_fit2 = model2.fit() 
-print (model_fit2.summary())                        #sumário do modelo
-coef2=model_fit2.params
-
-R22=model_fit2.rsquared
-
-    
-# make predictions
-y_predictions2 = model_fit2.predict(X_teste)          #previsão
-
-EQM2 = mean_squared_error(y_teste, y_predictions2)    #EQM
-resid2 = np.sqrt(EQM2)                                #Resíduo
-
+EQM2 = mean_squared_error(y_teste, y_predictions2) #EQM
+resid2 = np.sqrt(EQM2) #Resíduo
 print('Test MSE, Residual: %.3f' % EQM2, resid2)
-    
+
 accuracy_2 = r2_score(y_teste, y_predictions2)
 R2_2_teste = sm.OLS(y_teste,X_teste).fit().rsquared
 print ('accuracy, R2_teste: %.3f' % accuracy_2, R2_2_teste)
 
 if forecastHorizon>1: 
-    plt.figure()    
-    pyplot.plot(y_treino, label='Treino')
-    pyplot.plot(y_teste, color='black', label='Teste')
-    pyplot.plot(y_predictions2, color='red', label='Previsão')
+    plt.figure() 
+    pyplot.plot(y_treino, label='Train')
+    pyplot.plot(y_teste, color='black', label='Test')
+    pyplot.plot(y_predictions2, label='Forecast')
     #dados['CEE_BR_TOT'].plot(color='black', label='Brasil')
     plt.legend(loc='best')
     plt.ylabel('KW/h')
     plt.xticks(rotation=30)
-    plt.title('Previsão Consumo de Energia Elétrica (OLS)')
+    plt.title('Power Eletricity Consumption Forecast  (Random Walk)')
     #plt.grid()
-    plt.savefig('modelBR2_'+str(forecastHorizon)+'lag.png')   
+    plt.savefig('modelBR2_'+str(forecastHorizon)+'lag.png') 
+    pyplot.show() 
+
+
+
+
+                           #OLS    (3)            
+
+model3 = sm.OLS(y_treino,X_treino)                  #modelo
+model_fit3 = model3.fit() 
+print (model_fit3.summary())                        #sumário do modelo
+coef3=model_fit3.params
+
+R23=model_fit3.rsquared
+
+    
+# make predictions
+y_predictions3 = model_fit3.predict(X_teste)          #previsão
+
+EQM3 = mean_squared_error(y_teste, y_predictions3)    #EQM
+resid3 = np.sqrt(EQM3)                                #Resíduo
+
+print('Test MSE, Residual: %.3f' % EQM3, resid3)
+    
+accuracy_3 = r2_score(y_teste, y_predictions3)
+R2_3_teste = sm.OLS(y_teste,X_teste).fit().rsquared
+print ('accuracy, R2_teste: %.3f' % accuracy_3, R2_3_teste)
+
+if forecastHorizon>1: 
+    plt.figure()    
+    pyplot.plot(y_treino, label='Train')
+    pyplot.plot(y_teste, color='black', label='Test')
+    pyplot.plot(y_predictions3 , label='Forecast')
+    #dados['CEE_BR_TOT'].plot(color='black', label='Brasil')
+    plt.legend(loc='best')
+    plt.ylabel('KW/h')
+    plt.xticks(rotation=30)
+    plt.title('Power Eletricity Consumption Forecast  (OLS)')
+    #plt.grid()
+    plt.savefig('modelBR3_'+str(forecastHorizon)+'lag.png')   
     pyplot.show()   
 
 
 
 
-#2)Linear Regression
+#2)Linear Regression (4)
  
        
-reg = LinearRegression().fit(X_treino, y_treino)
-print(reg.score(X_treino, y_treino))                        #R2 fora da amostra
-print(reg.coef_)                                            #coeficientes
-coefreg=np.transpose(reg.coef_)
+model30= LinearRegression().fit(X_treino, y_treino)
+print(model30.score(X_treino, y_treino))                        #R2 fora da amostra
+print(model30.coef_)                                            #coeficientes
+coef30=np.transpose(model30.coef_)
 
-R2reg=reg.score(X_treino, y_treino)    
+R230=model30.score(X_treino, y_treino)    
     
-predictionsreg = reg.predict(X_teste)
-y_predictionsreg= pd.DataFrame(predictionsreg, index=teste)   #previsão
+predictions30 = model30.predict(X_teste)
+y_predictions30= pd.DataFrame(predictions30, index=teste)   #previsão
+    
+EQM30 = mean_squared_error(y_teste, y_predictions30)      #EQM
+resid30 = np.sqrt(EQM30)                                #Residuo
+print('Test MSE, residuo: %.3f' % EQM30,resid30)
 
-EQMreg = mean_squared_error(y_teste, y_predictionsreg)      #EQM
-residreg = np.sqrt(EQMreg)                                #Residuo
-print('Test MSE, residuo: %.3f' % EQMreg,residreg)
-
-accuracy_reg = r2_score(y_teste, y_predictionsreg)
-R2_reg_teste = reg.score(X_teste, y_teste)  
-print ('accuracy, R2_teste: %.3f' % accuracy_reg, R2_reg_teste)
+accuracy_30 = r2_score(y_teste, y_predictions30)
+R2_30_teste = model30.score(X_teste, y_teste)  
+print ('accuracy, R2_teste: %.3f' % accuracy_30, R2_30_teste)
 
 if forecastHorizon>1:     
     plt.figure()    
-    pyplot.plot(y_treino, label='Treino')
-    pyplot.plot(y_teste, color='black', label='Teste')
-    pyplot.plot(y_predictionsreg, color='red', label='Previsão')
+    pyplot.plot(y_treino, label='Train')
+    pyplot.plot(y_teste, color='black', label='Test')
+    pyplot.plot(y_predictions30 , label='Forecast')
     #dados['CEE_BR_TOT'].plot(color='black', label='Brasil')
     plt.legend(loc='best')
     plt.ylabel('KW/h')
     plt.xticks(rotation=30)
-    plt.title('Previsão Consumo de Energia Elétrica (LR)')
+    plt.title('Power Eletricity Consumption Forecast  (Linear Regression)')
     #plt.grid()
-    plt.savefig('modelBRreg_'+str(forecastHorizon)+'lag.png')   
+    plt.savefig('modelBR30_'+str(forecastHorizon)+'lag.png')   
     pyplot.show()  
 
 
@@ -483,9 +484,8 @@ if forecastHorizon>1:
 
 
 
-        #Lasso - OK
 
-#1)Lasso normal
+#1)Lasso normal - (4)
 
 
 #Olhar Default 
@@ -507,7 +507,6 @@ def lasso_classificator(X_treino, X_teste, y_treino, y_teste):
     EQM=pd.DataFrame(columns=['alpha', 'resíduo'], index=list(range(len(alpha_lasso_lista))))
     EQM['alpha']=alpha_lasso_lista
     EQM['resíduo']=EQM_lista
-    EQM1=EQM.sort_values(by='resíduo', ascending=True)[0:1]['resíduo'].item()
     
     print(EQM.sort_values(by='resíduo', ascending=True)[0:5])
     alpha=EQM.sort_values(by='resíduo', ascending=True)[0:1]['alpha'].item()
@@ -518,47 +517,47 @@ def lasso_classificator(X_treino, X_teste, y_treino, y_teste):
 
 alpha = lasso_classificator(X_treino, X_teste, y_treino, y_teste)
 
-model3 = linear_model.Lasso(alpha=alpha, copy_X=True, fit_intercept=True, max_iter=1000,
+
+model4 = linear_model.Lasso(alpha=alpha, copy_X=True, fit_intercept=True, max_iter=1000,
                             normalize=True, positive=False, precompute=False, random_state=None,
                             selection='cyclic', tol=0.0001, warm_start=False)
-model_fit3=model3.fit(X_treino,y_treino)
+model_fit4=model4.fit(X_treino,y_treino)
 
-coef3=model3.coef_
-R23 = model_fit3.score(X_treino,y_treino) 
+coef4=model4.coef_
+R24 = model_fit4.score(X_treino,y_treino) 
 # make predictions
-y_predictions3 = model_fit3.predict(X_teste)
-y_predictions3= pd.DataFrame(y_predictions3, index=teste) #previsão 
-EQM3 = mean_squared_error(y_teste, y_predictions3)
-resid3 = np.sqrt(EQM3)
-print('Test MSE, residuo: %.3f' % EQM3,resid3)
+y_predictions4 = model_fit4.predict(X_teste)
+y_predictions4= pd.DataFrame(y_predictions4, index=teste) #previsão 
+EQM4 = mean_squared_error(y_teste, y_predictions4)
+resid4 = np.sqrt(EQM4)
+print('Test MSE, residuo: %.3f' % EQM4,resid4)
 
-accuracy_3 = r2_score(y_teste, y_predictions3)
-R2_3_teste = model_fit3.score(X_teste, y_teste) 
-print ('accuracy, R2_teste: %.3f' % accuracy_3, R2_3_teste)
+accuracy_4 = r2_score(y_teste, y_predictions4)
+R2_4_teste = model_fit4.score(X_teste, y_teste) 
+print ('accuracy, R2_teste: %.3f' % accuracy_4, R2_4_teste)
 
 
 if forecastHorizon>1: 
     plt.figure() 
-    pyplot.plot(y_treino, label='Treino')
-    pyplot.plot(y_teste, color='black', label='Teste')
-    pyplot.plot(y_predictions3, color='red', label='Previsão')
+    pyplot.plot(y_treino, label='Train')
+    pyplot.plot(y_teste, color='black', label='Test')
+    pyplot.plot(y_predictions4, label='Forecast')
     #dados['CEE_BR_TOT'].plot(color='black', label='Brasil')
     plt.legend(loc='best')
     plt.ylabel('KW/h')
     plt.xticks(rotation=30)
-    plt.title('Previsão Consumo de Energia Elétrica (LASSO)')
+    plt.title('Power Eletricity Consumption Forecast  (Lasso)')
     #plt.grid()
-    # plt.savefig('modelBR3_'+str(forecastHorizon)+'lag.png') 
+    plt.savefig('modelBR4_'+str(forecastHorizon)+'lag.png') 
     pyplot.show() 
 
 
 
 
-#2) Lasso CV
-#está demorando muito
+#2) Lasso CV - (40)
 
 from sklearn.linear_model import LassoCV 
-#Olhar Default 
+
 print(LassoCV().get_params()) 
 
 def lassoCV_classificator(X_treino, X_teste, y_treino, y_teste):
@@ -611,45 +610,47 @@ def lassoCV_classificator(X_treino, X_teste, y_treino, y_teste):
 cv, eps = lassoCV_classificator(X_treino, X_teste, y_treino, y_teste)
 
 
-model4= LassoCV(fit_intercept=True, verbose=False, max_iter=500, normalize=True, 
+model40= LassoCV(fit_intercept=True, verbose=False, max_iter=500, normalize=True, 
                 cv=cv, eps=eps, copy_X=True, positive=False) 
 
-model4_fit = model4.fit(X_treino,y_treino)
+model40_fit = model40.fit(X_treino,y_treino)
 
-print(model4_fit.coef_) 
-coef4=model4_fit.coef_ 
-R24 = model4_fit.score(X_treino, y_treino) 
+print(model40_fit.coef_) 
+coef40=model40_fit.coef_ 
+R240 = model40_fit.score(X_treino, y_treino) 
 
-y_predictions4 = model4_fit.predict(X_teste)
-y_predictions4= pd.DataFrame(y_predictions4, index=teste) #previsão
+y_predictions40 = model40_fit.predict(X_teste)
+y_predictions40= pd.DataFrame(y_predictions40, index=teste) #previsão
 
-EQM4 = mean_squared_error(y_teste, y_predictions4)
-resid4 = np.sqrt(EQM4)
-print('Test MSE: %.3f' % EQM4,resid4)
+EQM40 = mean_squared_error(y_teste, y_predictions40)
+resid40 = np.sqrt(EQM40)
+print('Test MSE: %.3f' % EQM40,resid40)
 
-accuracy_4 = r2_score(y_teste, y_predictions4)
-R2_4_teste = model4_fit.score(X_teste, y_teste) 
-print ('accuracy, R2_teste: %.3f' % accuracy_4, R2_4_teste)
+accuracy_40 = r2_score(y_teste, y_predictions40)
+R2_40_teste = model40_fit.score(X_teste, y_teste) 
+print ('accuracy, R2_teste: %.3f' % accuracy_40, R2_40_teste)
 
 
 if forecastHorizon>1: 
     plt.figure() 
-    pyplot.plot(y_treino, label='Treino')
-    pyplot.plot(y_teste, color='black', label='Teste')
-    pyplot.plot(y_predictions4, color='red', label='Previsão')
+    pyplot.plot(y_treino, label='Train')
+    pyplot.plot(y_teste, color='black', label='Test')
+    pyplot.plot(y_predictions40 , label='Forecast')
     #dados['CEE_BR_TOT'].plot(color='black', label='Brasil')
     plt.legend(loc='best')
     plt.ylabel('KW/h')
     plt.xticks(rotation=30)
-    plt.title('Previsão Consumo de Energia Elétrica (LASSO CV)')
+    plt.title('Power Eletricity Consumption Forecast  (Lasso CV)')
     plt.grid()
-    # plt.savefig('modelBR4_'+str(forecastHorizon)+'lag.png') 
+    plt.savefig('modelBR40_'+str(forecastHorizon)+'lag.png') 
     pyplot.show()
+   
+    
+    
     
 
-#Lars - OK
 
-#1) Lars 
+#1) Lars - 5
 
 #Olhar Default 
 print(Lars().get_params())
@@ -758,21 +759,21 @@ print ('accuracy, R2_teste: %.3f' % accuracy_5, R2_5_teste)
 
 if forecastHorizon>1: 
     plt.figure() 
-    pyplot.plot(y_treino, label='Treino')
-    pyplot.plot(y_teste, color='black', label='Teste')
-    pyplot.plot(y_predictions5, color='red', label='Previsão')
+    pyplot.plot(y_treino, label='Train')
+    pyplot.plot(y_teste, color='black', label='Test')
+    pyplot.plot(y_predictions5 , label='Forecast')
     #dados['CEE_BR_TOT'].plot(color='black', label='Brasil')
     plt.legend(loc='best')
     plt.ylabel('KW/h')
     plt.xticks(rotation=30)
-    plt.title('Previsão Consumo de Energia Elétrica (LARS)')
+    plt.title('Power Eletricity Consumption Forecast  (Lars)')
     plt.grid()
-    # plt.savefig('modelBR5_'+str(forecastHorizon)+'lag.png') 
+    plt.savefig('modelBR5_'+str(forecastHorizon)+'lag.png') 
     pyplot.show()
         
 
     
-#2) Lasso Lars - OK
+#2) Lasso Lars - 6
 
 #Olhar Default 
 print(LassoLars().get_params()) 
@@ -864,24 +865,23 @@ print ('accuracy, R2_teste: %.3f' % accuracy_6, R2_6_teste)
 
 if forecastHorizon>1: 
     plt.figure() 
-    pyplot.plot(y_treino, label='Treino')
-    pyplot.plot(y_teste, color='black', label='Teste')
-    pyplot.plot(y_predictions6, color='red', label='Previsão')
+    pyplot.plot(y_treino, label='Train')
+    pyplot.plot(y_teste, color='black', label='Test')
+    pyplot.plot(y_predictions6 , label='Forecast')
     #dados['CEE_BR_TOT'].plot(color='black', label='Brasil')
     plt.legend(loc='best')
     plt.ylabel('KW/h')
     plt.xticks(rotation=30)
-    plt.title('Previsão Consumo de Energia Elétrica (LASSO LARS)')
+    plt.title('Power Eletricity Consumption Forecast  (Lasoo Lars)')
     plt.grid()
-    # plt.savefig('modelBR6_'+str(forecastHorizon)+'lag.png') 
+    plt.savefig('modelBR6_'+str(forecastHorizon)+'lag.png') 
     pyplot.show()
 
 
 
 
-#3) Lasso Lars CV - DEMORA
+#3) Lasso Lars CV - (7)
 
-#Olhar Default 
 print(LassoLarsCV().get_params())
     
 def lassoLarsCV_classificator(X_treino, X_teste, y_treino, y_teste):
@@ -972,21 +972,21 @@ print ('accuracy, R2_teste: %.3f' % accuracy_7, R2_7_teste)
 
 if forecastHorizon>1: 
     plt.figure() 
-    pyplot.plot(y_treino, label='Treino')
-    pyplot.plot(y_teste, color='black', label='Teste')
-    pyplot.plot(y_predictions7, color='red', label='Previsão')
+    pyplot.plot(y_treino, label='Train')
+    pyplot.plot(y_teste, color='black', label='Test')
+    pyplot.plot(y_predictions7 , label='Forecast')
     #dados['CEE_BR_TOT'].plot(color='black', label='Brasil')
     plt.legend(loc='best')
     plt.ylabel('KW/h')
     plt.xticks(rotation=30)
-    plt.title('Previsão Consumo de Energia Elétrica (LASSO LARS CV)')
+    plt.title('Power Eletricity Consumption Forecast  (Lasso Lars CV)')
     plt.grid()
-    # plt.savefig('modelBR7_'+str(forecastHorizon)+'lag.png') 
+    plt.savefig('modelBR7_'+str(forecastHorizon)+'lag.png') 
     pyplot.show()
 
 
 
-#Ridge Regression - OK
+#Ridge Regression - (8)
 
 #Olhar Default 
 print(Ridge().get_params())
@@ -1038,23 +1038,23 @@ print ('accuracy, R2_teste: %.3f' % accuracy_8, R2_8_teste)
 
 if forecastHorizon>1: 
     plt.figure() 
-    pyplot.plot(y_treino, label='Treino')
-    pyplot.plot(y_teste, color='black', label='Teste')
-    pyplot.plot(y_predictions8, color='red', label='Previsão')
+    pyplot.plot(y_treino, label='Train')
+    pyplot.plot(y_teste, color='black', label='Test')
+    pyplot.plot(y_predictions8 , label='Forecast')
     #dados['CEE_BR_TOT'].plot(color='black', label='Brasil')
     plt.legend(loc='best')
     plt.ylabel('KW/h')
     plt.xticks(rotation=30)
-    plt.title('Previsão Consumo de Energia Elétrica (Ridge)')
+    plt.title('Power Eletricity Consumption Forecast  (Ridge)')
     plt.grid()
-    # plt.savefig('modelBR8_'+str(forecastHorizon)+'lag.png') 
+    plt.savefig('modelBR8_'+str(forecastHorizon)+'lag.png') 
     pyplot.show() 
     
 
 
 #ElasticNet 
 
-#1) ElasticNet sem CV - OK
+#1) ElasticNet sem CV - (9)
 
 #Olhar Default 
 print(ElasticNet().get_params())
@@ -1179,21 +1179,21 @@ print ('accuracy, R2_teste: %.3f' % accuracy_90, R2_90_teste)
 
 if forecastHorizon>1: 
     plt.figure() 
-    pyplot.plot(y_treino, label='Treino')
-    pyplot.plot(y_teste, color='black', label='Teste')
-    pyplot.plot(y_predictions90, color='red', label='Previsão')
+    pyplot.plot(y_treino, label='Train')
+    pyplot.plot(y_teste, color='black', label='Test')
+    pyplot.plot(y_predictions90 , label='Forecast')
     #dados['CEE_BR_TOT'].plot(color='black', label='Brasil')
     plt.legend(loc='best')
     plt.ylabel('KW/h')
     plt.xticks(rotation=30)
-    plt.title('Previsão Consumo de Energia Elétrica (ElasticNet)')
+    plt.title('Power Eletricity Consumption Forecast  (Elastic Net)')
     plt.grid()
-    # plt.savefig('modelBR9_'+str(forecastHorizon)+'lag.png') 
+    plt.savefig('modelBR9_'+str(forecastHorizon)+'lag.png') 
     pyplot.show() 
 
 
 
-#2) ElasticNetCV - OK 
+#2) ElasticNetCV - (90)
 
 #Verificar Default
 print(ElasticNetCV().get_params())
@@ -1204,8 +1204,6 @@ def ElasticNetCV_classificator(X_treino, X_teste, y_treino, y_teste):
     EQM1_lista=[]
     EQM2_lista=[]
     EQM3_lista=[]
-    EQM4_lista=[]
-
     
     for l1_ratio in l1_ratio_list:
         start_time=time.time()
@@ -1292,20 +1290,20 @@ print ('accuracy, R2_teste: %.3f' % accuracy_9, R2_9_teste)
 
 if forecastHorizon>1: 
     plt.figure() 
-    pyplot.plot(y_treino, label='Treino')
-    pyplot.plot(y_teste, color='black', label='Teste')
-    pyplot.plot(y_predictions9, color='red', label='Previsão')
+    pyplot.plot(y_treino, label='Train')
+    pyplot.plot(y_teste, color='black', label='Test')
+    pyplot.plot(y_predictions9 , label='Forecast')
     #dados['CEE_BR_TOT'].plot(color='black', label='Brasil')
     plt.legend(loc='best')
     plt.ylabel('KW/h')
     plt.xticks(rotation=30)
-    plt.title('Previsão Consumo de Energia Elétrica (ElasticNetCV)')
+    plt.title('Power Eletricity Consumption Forecast  (Elastic Net CV)')
     #plt.grid()
     plt.savefig('modelBR9.png') 
     pyplot.show()
 
 
-#Random Forest (MELHOR EQM)
+#Random Forest - (10)
 
 # Look at parameters used by our current forest
 pprint(RandomForestRegressor().get_params())
@@ -1313,7 +1311,6 @@ pprint(RandomForestRegressor().get_params())
 def RandomForest_classificator(X_treino, X_teste, y_treino, y_teste):
     n_estimators_list=[10,50,100,1000]
     EQM1_lista=[]
-    EQM2_lista=[]
     
     for n_estimators in n_estimators_list:
         model=RandomForestRegressor(n_estimators=n_estimators, max_depth=None, min_samples_split=2, 
@@ -1330,12 +1327,11 @@ def RandomForest_classificator(X_treino, X_teste, y_treino, y_teste):
     EQM=pd.DataFrame(columns=['n_estimators', 'resíduo'], index=list(range(len(n_estimators_list))))
     EQM['n_estimators']=n_estimators_list
     EQM['resíduo']=EQM1_lista
-    EQM1=EQM.sort_values(by='resíduo', ascending=True)[0:1]['resíduo'].item()
     
     print(EQM.sort_values(by='resíduo', ascending=True)[0:5])
     n_estimators=EQM.sort_values(by='resíduo', ascending=True)[0:1]['n_estimators'].item()
     
-    print('O numero de estimatores que apresenta o menor erro de previsão é igual a %.1f' % alpha) 
+    print('O numero de estimatores que apresenta o menor erro de previsão é igual a %.1f' % n_estimators) 
     
     return n_estimators
     
@@ -1368,16 +1364,16 @@ print ('accuracy, R2_teste: %.3f' % accuracy_10, R2_10_teste)
 
 if forecastHorizon>1: 
     plt.figure() 
-    pyplot.plot(y_treino, label='Treino')
-    pyplot.plot(y_teste, color='black', label='Teste')
-    pyplot.plot(y_predictions10, color='red', label='Previsão')
+    pyplot.plot(y_treino, label='Train')
+    pyplot.plot(y_teste, color='black', label='Test')
+    pyplot.plot(y_predictions10 , label='Forecast')
     #dados['CEE_BR_TOT'].plot(color='black', label='Brasil')
     plt.legend(loc='best')
     plt.ylabel('KW/h')
     plt.xticks(rotation=30)
-    plt.title('Previsão Consumo de Energia Elétrica (Random Forest)')
+    plt.title('Power Eletricity Consumption Forecast  (Random Forest)')
     plt.grid()
-    # plt.savefig('modelBR10_'+str(forecastHorizon)+'lag.png') 
+    plt.savefig('modelBR10_'+str(forecastHorizon)+'lag.png') 
     pyplot.show()
 
 
@@ -1394,14 +1390,26 @@ colunas2 = ['DM','DS','MÊS','ANO','ESTAC','FER','NEB_BR_9','NEB_BR_15','NEB_BR_
 
 
 
-if EQM3>EQM4:
-    print("Lasso com CV tem um erro de previsão menor")
-    EQM3=EQM4
-    coef3=coef4
-    resid3=resid4
-    accuracy_3=accuracy_4
-    R2_3_teste=R2_4_teste
+#OLS vs LR
+if EQM3>EQM30:
+    print("LR tem um erro de previsão menor")
+    EQM3=EQM30
+    coef3=coef30
+    resid3=resid30
+    accuracy_3=accuracy_30
+    R2_3_teste=R2_30_teste
 
+
+#LASSO vs LASSOCV
+if EQM4>EQM40:
+    print("Lasso com CV tem um erro de previsão menor")
+    EQM4=EQM40
+    coef4=coef40
+    resid4=resid40
+    accuracy_4=accuracy_40
+    R2_4_teste=R2_40_teste
+
+#LARS vs LARSCV
 if EQM6>EQM7:
     print("LassoLars com CV tem um erro de previsão menor")
     EQM6=EQM7
@@ -1410,50 +1418,49 @@ if EQM6>EQM7:
     accuracy_6=accuracy_7
     R2_6_teste=R2_7_teste
 
-if EQM90>EQM0:
+#EN vs ENCV - OK
+if EQM9>EQM90:
     print("ElasticNet com CV tem um erro de previsão menor")
-    EQM90=EQM9
-    coef90=coef9
-    resid90=resid9
-    accuracy_90=accuracy_9
-    R2_90_teste=R2_9_teste
+    EQM9=EQM90
+    coef9=coef90
+    resid9=resid90
+    accuracy_9=accuracy_90
+    R2_9_teste=R2_90_teste
 
   
 
-coef = pd.DataFrame(coef2, index=X.columns)
-coef.columns = ['OLS']
-coef['LinearRegression']=coefreg
-coef['Lasso']=coef3
+coef = pd.DataFrame(coef3, index=X.columns)
+coef.columns = ['Linear Regression']
+coef['Lasso']=coef4
 coef['Lars']=coef5
-coef['LassoLars']=coef6
+coef['Lasso Lars']=coef6
 coef['Ridge']=coef8
-coef['ElasticNet']=coef90 
-coef['RandomForest']=coef10
+coef['Elastic Net']=coef9 
+coef['Random Forest']=coef10
 
 
 
-R2_list = [R2_AR,0,R22,R2reg, R23,R25,R26,R28,R290,R210] 
+R2_list = [R21,0,R23,R24, R25,R26,R28,R29,R210] 
 
-EQM_list = [EQM_AR,EQM0,EQM2,EQMreg,EQM3,EQM5,EQM6,EQM8,EQM90,EQM10]
+EQM_list = [EQM1,EQM2,EQM3,EQM4,EQM5,EQM6,EQM8,EQM9,EQM10]
 
-resid_list = [resid_AR,resid0,resid2,residreg, resid3,resid5,resid6,
-resid8,resid90,resid10]
+resid_list = [resid1,resid2,resid3,resid4, resid5,resid6,resid8,resid9,resid10]
 
-accuracy_list = [accuracy_AR,accuracy_0,accuracy_2,accuracy_reg,accuracy_3,accuracy_5,
-accuracy_6,accuracy_8,accuracy_90,accuracy_10]
+accuracy_list = [accuracy_1,accuracy_2,accuracy_3,accuracy_4,accuracy_5,accuracy_6,accuracy_8,accuracy_9,accuracy_10]
 
-R2_test_list = [R2_AR_teste,0,R2_2_teste,R2_reg_teste, R2_3_teste,R2_5_teste,
-R2_6_teste,R2_8_teste,R2_90_teste,R2_10_teste]
+R2_test_list = [R2_1_teste,0,R2_3_teste,R2_4_teste, R2_5_teste,R2_6_teste,R2_8_teste,R2_9_teste,R2_10_teste]
 
 
-index=['R2', 'EQM', 'Resíduo','Accuracy', 'R2 Teste']    
-colunas3 = ['AR','RandomWalk','OLS','LinearRegression','Lasso','Lars','LassoLars',
-'Ridge','ElasticNet','RandomForest']
+index=['Modelos','R2', 'EQM', 'Resíduo','Accuracy', 'R2 Teste']    
+colunas3 = ['AR','Random Walk','Linear Regression','Lasso','Lars','Lasso Lars',
+'Ridge','Elastic Net','Random Forest']
 
 
-previsao = pd.DataFrame([R2_list, EQM_list, resid_list, accuracy_list,R2_test_list ],index=index, columns=colunas3)
+previsao = pd.DataFrame([colunas3,R2_list, EQM_list, resid_list, accuracy_list,R2_test_list ],index=index, columns=list(range(1,10)))
 previsao=previsao.transpose()
 print(previsao)
+
+
 
 if forecastHorizon==1:
     y_verd=y_teste.values[0]
@@ -1461,67 +1468,73 @@ if forecastHorizon==1:
     comparacao['Preço Verdadeiro']=y_verd 
     comparacao['Preço Estimado']=0
     comparacao['Preço Estimado'][:1]=y_predictions1+y_treino[-1:].values[0]
-    comparacao['Preço Estimado'][1:2]=y_predictions0
-    comparacao['Preço Estimado'][2:3]=y_predictions2
-    comparacao['Preço Estimado'][3:4]=y_predictionsreg
-    comparacao['Preço Estimado'][4:5]=y_predictions3
-    comparacao['Preço Estimado'][5:6]=y_predictions5
-    comparacao['Preço Estimado'][6:7]=y_predictions6
-    comparacao['Preço Estimado'][7:8]=y_predictions8
-    comparacao['Preço Estimado'][8:9]=y_predictions90 
-    comparacao['Preço Estimado'][9:10]=y_predictions10 
+    comparacao['Preço Estimado'][1:2]=y_predictions2
+    comparacao['Preço Estimado'][2:3]=y_predictions3
+    comparacao['Preço Estimado'][3:4]=y_predictions4
+    comparacao['Preço Estimado'][4:5]=y_predictions5
+    comparacao['Preço Estimado'][5:6]=y_predictions6
+    comparacao['Preço Estimado'][6:7]=y_predictions8
+    comparacao['Preço Estimado'][7:8]=y_predictions9
+    comparacao['Preço Estimado'][8:9]=y_predictions10 
     comparacao['Diferenca']= comparacao['Preço Verdadeiro']- comparacao['Preço Estimado'] 
     print(comparacao)
 
-#Caso deseje expotar os dados para o excel:
-
-#   writer = pd.ExcelWriter('dados_lag'+str(forecastHorizon)+'_modo'+str(modo)+'.xlsx')
-#   coef.to_excel(writer,'coeficientes_lag'+str(forecastHorizon))
-#   previsao.to_excel(writer,'previsao_lag'+str(forecastHorizon))
-#   if forecastHorizon==1:
-#       comparacao.to_excel(writer,'comparacao_lag'+str(forecastHorizon))
-#   writer.save()
-
-
 #Plot4
-print(previsao.sort_values(by='Resíduo', ascending=True)[0:5]['Resíduo']) 
+print(previsao.sort_values(by='Resíduo', ascending=True)[0:5]['Resíduo'])
+
+#previsao.sort_values(by='Resíduo', ascending=True)[0:1].index.item()
+#previsao.sort_values(by='Resíduo', ascending=True)[0:1]['Modelos'].item()
+
+previsao_aux=pd.DataFrame(data=y_predictions1)
+previsao_aux[1]=y_predictions2
+previsao_aux[2]=y_predictions3
+previsao_aux[3]=y_predictions4
+previsao_aux[4]=y_predictions5
+previsao_aux[5]=y_predictions6
+previsao_aux[6]=y_predictions8
+previsao_aux[7]=y_predictions9
+previsao_aux[8]=y_predictions10
+previsao_aux.columns = [list(range(1,10))]
+    
+
+if forecastHorizon>1:    
+    fig2, axes = plt.subplots(nrows=4, ncols=1, figsize=(7, 7))
+    axes[0].set_title(previsao.sort_values(by='Resíduo', ascending=True)[0:1]['Modelos'].item())
+    axes[0].plot (y_treino, label='Train')
+    axes[0].plot(y_teste, color='black', label='Test')
+    axes[0].plot(previsao_aux[previsao.sort_values(by='Resíduo', ascending=True)[0:1].index.item()], label='Forecast')
+    axes[0].legend(loc='best')
+    axes[0].set_ylabel("KW/h")
+    
+    axes[1].set_title(previsao.sort_values(by='Resíduo', ascending=True)[1:2]['Modelos'].item())
+    axes[1].plot (y_treino, label='Train')
+    axes[1].plot(y_teste, color='black', label='Test')
+    axes[1].plot(previsao_aux[previsao.sort_values(by='Resíduo', ascending=True)[1:2].index.item()], label='Forecast')   
+    axes[1].legend(loc='best')
+    axes[1].set_ylabel("KW/h")
+    
+    axes[2].set_title(previsao.sort_values(by='Resíduo', ascending=True)[2:3]['Modelos'].item())
+    axes[2].plot (y_treino, label='Train')
+    axes[2].plot(y_teste, color='black', label='Test')
+    axes[2].plot(previsao_aux[previsao.sort_values(by='Resíduo', ascending=True)[2:3].index.item()], label='Forecast') 
+    axes[2].legend(loc='best')
+    axes[2].set_ylabel("KW/h")
+    
+    axes[3].set_title(previsao.sort_values(by='Resíduo', ascending=True)[3:4]['Modelos'].item())
+    axes[3].plot (y_treino, label='Train') 
+    axes[3].plot(y_teste, color='black', label='Test')
+    axes[3].plot(previsao_aux[previsao.sort_values(by='Resíduo', ascending=True)[3:4].index.item()], label='Forecast')   
+    axes[3].legend(loc='best')
+    axes[3].set_ylabel("KW/h")
+    fig2.tight_layout()
+    plt.savefig('modelo'+str(forecastHorizon)+'dias.png')   
 
 
-#if forecastHorizon>1:    
-#    fig2, axes = plt.subplots(nrows=4, ncols=1, figsize=(7, 7))
-#    axes[0].set_title("Previsão CEE (Elastic Net) - Erro = " + str(resid90) + " KW/h")
-#    axes[0].plot (y_treino, label='Treino')
-#    axes[0].plot(y_teste, color='black', label='Teste')
-#    axes[0].plot(y_predictions90, label='Previsão')
-#    axes[0].legend(loc='best')
-#    axes[0].set_ylabel("KW/h")
-#    
-#    axes[1].set_title("Previsão CEE (Ridge) - Erro = " + str(resid8) + " KW/h")
-#    axes[1].plot (y_treino, label='Treino')
-#    axes[1].plot(y_teste, color='black', label='Teste')
-#    axes[1].plot(y_predictions8, label='Previsão')
-#    axes[1].legend(loc='best')
-#    axes[1].set_ylabel("KW/h")
-#    
-#    axes[2].set_title("Previsão CEE (OLS) - Erro = " + str(resid2) + " KW/h")
-#    axes[2].plot (y_treino, label='Treino')
-#    axes[2].plot(y_teste, color='black', label='Teste')
-#    axes[2].plot(y_predictions2, label='Previsão')
-#    axes[2].legend(loc='best')
-#    axes[2].set_ylabel("KW/h")
-#    
-#    axes[3].set_title("Previsão CEE (Lars) - Erro = " + str(resid5) + " KW/h")
-#    axes[3].plot (y_treino, label='Treino')
-#    axes[3].plot(y_teste, color='black', label='Teste')
-#    axes[3].plot(y_predictions5, label='Previsão')
-#    axes[3].legend(loc='best')
-#    axes[3].set_ylabel("KW/h")
-#    fig2.tight_layout()
-#    plt.savefig('modelo'+str(forecastHorizon)+'dias.png')   
-#
-#
-#
-
-
-
+writer = pd.ExcelWriter('dados_lag'+str(forecastHorizon)+'_modo'+str(modo)+'.xlsx')
+coef.to_excel(writer,'coeficientes_lag'+str(forecastHorizon))
+previsao.set_index('Modelos')
+previsao.to_excel(writer,'previsao_lag'+str(forecastHorizon))
+if forecastHorizon==1:
+    comparacao.to_excel(writer,'comparacao_lag'+str(forecastHorizon))
+writer.save()
 
